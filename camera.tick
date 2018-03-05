@@ -1,0 +1,17 @@
+dbrp "chambers"."autogen"
+
+var interval = 30m
+var message_dead = '[OFF] Camera {{ .ID }} is OFFLINE'
+var message_alive = '[OK] Camera {{ .ID }} is ONLINE'
+
+var data = stream
+    |from()
+        .database('chambers')
+        .retentionPolicy('autogen')
+        .measurement('camera')
+        .groupBy('camera_name')
+    |deadman(0.0, interval)
+        .id('{{ index .Tags "camera_name" }}')
+        .message('{{ if eq .Level "OK" }}' + message_alive + '{{ else }}' + message_dead + '{{ end }}.')
+        .slack()
+        .stateChangesOnly()

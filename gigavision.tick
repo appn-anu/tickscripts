@@ -1,0 +1,36 @@
+dbrp "capture_server"."autogen"
+
+var interval = 1h
+var oneday = 24h
+var message_dead = '[OFF] Gigavision {{ .ID }} NO DATA'
+var message_alive = '[OK] Gigavision {{ .ID }} HAS DATA'
+var message_total = '[CRIT] Gigavision {{ .ID }} TEMP DIFF {{ index .Fields "total_images_max" | printf "%.0f"}}'
+var message_total_ok = '[OK] Gigavision {{ .ID }} TEMP DIFF OK'
+var data = stream
+  |from()
+    .database('capture_server')
+    .retentionPolicy('autogen')
+    .measurement('gigavision')
+    .groupBy('name')
+
+var max_total = data
+  |window()
+    .fillPeriod()
+    .align()
+    .period(oneday)
+    .every(interval)
+  |max('total_images')
+    .as('total_images_max')
+  |alert()
+    .crit(lambda: "total_images_max" <= 1.0)
+    .id('{{ index .Tags "name" }}')
+    .message('{{ if eq .Level "OK" }}' + message_total_ok + '{{ else }}' + message_total + '{{ end }}.')
+    .slack()
+    .stateChangesOnly()
+
+var dman = data
+  |deadman(0.0, interval, lambda: hour("time" >= 8 AND hour("time") <= 18))
+    .id('{{ index .Tags "name" }}')
+    .message('{{ if eq .Level "OK" }}' + message_alive + '{{ else }}' + message_dead + '{{ end }}.')
+    .slack()
+    .stateChangesOnly()
