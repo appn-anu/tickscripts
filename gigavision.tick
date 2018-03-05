@@ -29,7 +29,7 @@ var max_total = data
     .stateChangesOnly()
 
 var dman = data
-  |deadman(0.0, interval, lambda: hour("time" >= 8 AND hour("time") <= 18))
+  |deadman(0.0, interval, lambda: hour("time" >= 7 AND hour("time") <= 17))
     .id('{{ index .Tags "name" }}')
     .message('{{ if eq .Level "OK" }}' + message_alive + '{{ else }}' + message_dead + '{{ end }}.')
     .slack()
