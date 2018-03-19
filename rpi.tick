@@ -1,6 +1,7 @@
 dbrp "chambers"."autogen"
 
-var interval = 10m
+var notifyusers = 'gdunstone'
+var interval = 1m
 var message_dead = '[OFF] RPi {{ .ID }} is OFFLINE'
 var message_alive = '[OK] RPi {{ .ID }} is ONLINE'
 
@@ -14,4 +15,5 @@ var data = stream
         .id('{{ index .Tags "host" }}')
         .message('{{ if eq .Level "OK" }}' + message_alive + '{{ else }}' + message_dead + '{{ end }}.')
         .slack()
+        .exec('python3', '/home/gareth/tickscripts/gitalert.py', 'rpi deadman', notifyusers)
         .stateChangesOnly()

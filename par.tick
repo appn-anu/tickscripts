@@ -1,5 +1,6 @@
 dbrp "chambers"."autogen"
 
+var notifyusers = 'gdunstone'
 var oneday = 24h
 var interval = 1h
 var message_dead = '[OFF] PAR {{ .ID }} NO DATA'
@@ -28,6 +29,7 @@ var par_spread_alert = data
     .id('{{ index .Tags "host" }}')
     .message('{{ if eq .Level "OK" }}' + message_spread_ok + '{{ else }}' + message_spread + '{{ end }}.')
     .slack()
+    .exec('python3', '/home/gareth/tickscripts/gitalert.py', 'par spread', notifyusers)
     .stateChangesOnly()
 
 var dman = data
@@ -35,4 +37,5 @@ var dman = data
     .id('{{ index .Tags "host" }}')
     .message('{{ if eq .Level "OK" }}' + message_alive + '{{ else }}' + message_dead + '{{ end }}.')
     .slack()
+    .exec('python3', '/home/gareth/tickscripts/gitalert.py', 'par deadman', notifyusers)
     .stateChangesOnly()

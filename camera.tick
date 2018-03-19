@@ -1,5 +1,6 @@
 dbrp "chambers"."autogen"
 
+var notifyusers = 'gdunstone'
 var interval = 30m
 var message_dead = '[OFF] Camera {{ .ID }} is OFFLINE'
 var message_alive = '[OK] Camera {{ .ID }} is ONLINE'
@@ -14,4 +15,5 @@ var data = stream
         .id('{{ index .Tags "camera_name" }}')
         .message('{{ if eq .Level "OK" }}' + message_alive + '{{ else }}' + message_dead + '{{ end }}.')
         .slack()
+        .exec('python3', '/home/gareth/tickscripts/gitalert.py', 'camera deadman', notifyusers)
         .stateChangesOnly()
