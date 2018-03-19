@@ -26,7 +26,7 @@ def make_issue():
 
 for iss in repo.get_issues():
     if iss.title.contains(alert_title):
-        iss.create_comment()
+        iss.create_comment(data['message'])
         sys.exit(0)
 
 make_issue()
