@@ -2,7 +2,7 @@
 import sys
 import json
 from github import Github, GithubObject
-config = json.load(open('/home/stormaes/tickscripts/config.json'))
+config = json.load(open('/home/gareth/tickscripts/config.json'))
 g = Github(config['token'])
 
 user = g.get_organization(config['org'])
