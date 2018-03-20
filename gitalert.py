@@ -9,23 +9,22 @@ user = g.get_organization(config['org'])
 repo = user.get_repo(config['repo'])
 data = json.load(sys.stdin)
 
-alert_title = "{} {}".format(data['id'], sys.argv[1])
-full_title = "[{}] {}".format(data['level'], alert_title)
+full_title = "[{}] {}".format(data['level'], data['id'])
 
 def make_issue():
     kwargs = {
         "body": data['message'],
         "labels": [data['level']]
     }
-    if "," in sys.argv[2]:
-        kwargs["assignees"] = sys.argv[2].split(',')
+    if "," in sys.argv[1]:
+        kwargs["assignees"] = sys.argv[1].split(',')
     else:
-        kwargs["assignee"] = sys.argv[2].strip()
+        kwargs["assignee"] = sys.argv[1].strip()
 
     repo.create_issue(full_title, **kwargs)
 
 for iss in repo.get_issues():
-    if alert_title in iss.title:
+    if data['id'] in iss.title:
         iss.create_comment(data['message'])
         sys.exit(0)
 
