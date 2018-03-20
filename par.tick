@@ -1,6 +1,7 @@
 dbrp "chambers"."autogen"
 
-var notifyusers = 'gdunstone'
+var notifyusers = 'gdunstone,richardpoire,TimeScience,zarlo,appf-bot'
+
 var oneday = 24h
 var interval = 1h
 var message_dead = '[OFF] PAR {{ .ID }} NO DATA'

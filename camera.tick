@@ -1,6 +1,7 @@
 dbrp "chambers"."autogen"
 
-var notifyusers = 'gdunstone'
+var notifyusers = 'gdunstone,richardpoire,TimeScience,zarlo,appf-bot'
+
 var interval = 30m
 var message_dead = '[OFF] Camera {{ .ID }} is OFFLINE'
 var message_alive = '[OK] Camera {{ .ID }} is ONLINE'

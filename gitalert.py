@@ -2,7 +2,7 @@
 import sys
 import json
 from github import Github, GithubObject
-config = json.load(open('/home/gareth/tickscripts/config.json'))
+config = json.load(open('/home/stormaes/tickscripts/config.json'))
 g = Github(config['token'])
 
 user = g.get_organization(config['org'])
@@ -25,7 +25,7 @@ def make_issue():
     repo.create_issue(full_title, **kwargs)
 
 for iss in repo.get_issues():
-    if iss.title.contains(alert_title):
+    if alert_title in iss.title:
         iss.create_comment(data['message'])
         sys.exit(0)
 

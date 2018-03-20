@@ -1,6 +1,7 @@
 dbrp "chambers"."autogen"
 
-var notifyusers = 'gdunstone'
+var notifyusers = 'gdunstone,richardpoire,TimeScience,zarlo,appf-bot'
+
 var interval = 4h
 var oneday = 24h
 var message_dead = '[OFF] Chamber {{ .ID }} NO DATA'
