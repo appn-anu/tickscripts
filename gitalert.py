@@ -9,7 +9,7 @@ user = g.get_organization(config['org'])
 repo = user.get_repo(config['repo'])
 data = json.load(sys.stdin)
 
-alert_title = "{}-{}".format(data['id'], sys.argv[1])
+alert_title = "{} {}".format(data['id'], sys.argv[1])
 full_title = "[{}] {}".format(data['level'], alert_title)
 
 def make_issue():
