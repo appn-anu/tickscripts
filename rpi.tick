@@ -3,8 +3,8 @@ dbrp "chambers"."autogen"
 var notifyusers = 'gdunstone,richardpoire,TimeScience,zarlo,appf-bot'
 
 var interval = 5m
-var message_dead = '[OFF] RPi {{ .ID }} is OFFLINE'
-var message_alive = '[OK] RPi {{ .ID }} is ONLINE'
+var message_dead = '[OFF] RPi {{ .ID }}'
+var message_alive = '[OK] RPi {{ .ID }}'
 
 var data = stream
     |from()

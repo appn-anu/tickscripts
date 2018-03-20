@@ -3,8 +3,8 @@ dbrp "chambers"."autogen"
 var notifyusers = 'gdunstone,richardpoire,TimeScience,zarlo,appf-bot'
 
 var interval = 30m
-var message_dead = '[OFF] Camera {{ .ID }} is OFFLINE'
-var message_alive = '[OK] Camera {{ .ID }} is ONLINE'
+var message_dead = '[OFF] Camera {{ .ID }}'
+var message_alive = '[OK] Camera {{ .ID }}'
 
 var data = stream
     |from()
