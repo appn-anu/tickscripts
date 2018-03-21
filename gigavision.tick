@@ -3,7 +3,7 @@ dbrp "capture_server"."autogen"
 var notifyusers = 'gdunstone,TimeScience,appf-bot'
 
 var interval = 1h
-var per = 2h
+var per = 1h
 var message_dead = '[OFF] Gigavision {{ .ID }} NO DATA'
 var message_alive = '[OK] Gigavision {{ .ID }} HAS DATA'
 var message_total = '[CRIT] Gigavision {{ .ID }} TEMP DIFF {{ index .Fields "total_images_max" | printf "%.0f"}}'
