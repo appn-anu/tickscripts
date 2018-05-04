@@ -1,6 +1,6 @@
 dbrp "chambers"."autogen"
 
-var notifyusers = 'gdunstone,richardpoire,TimeScience,zarlo,appf-bot'
+var notifyusers = 'gdunstone,richardpoire,TimeScience,zarlo,pburrell2,appf-bot'
 
 var interval = 30m
 var message_dead = '[OFF] Camera {{ .ID }}'

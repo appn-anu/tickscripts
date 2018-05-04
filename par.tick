@@ -1,6 +1,6 @@
 dbrp "chambers"."autogen"
 
-var notifyusers = 'gdunstone,richardpoire,TimeScience,zarlo,appf-bot'
+var notifyusers = 'gdunstone,richardpoire,TimeScience,zarlo,pburrell2,appf-bot'
 
 var oneday = 24h
 var interval = 1h
