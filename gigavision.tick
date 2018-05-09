@@ -1,7 +1,5 @@
 dbrp "capture_server"."autogen"
 
-var notifyusers = 'gdunstone,TimeScience,appf-bot'
-
 var interval = 1h
 var per = 1h
 var message_dead = '[OFF] Gigavision {{ .ID }} NO DATA'
@@ -28,7 +26,7 @@ var max_total = data
     .id('{{ index .Tags "name" }} gigavision num images difference')
     .message('{{ if eq .Level "OK" }}' + message_total_ok + '{{ else }}' + message_total + '{{ end }}.')
     .slack()
-    .exec('python3', '/home/gareth/tickscripts/gitalert.py', notifyusers)
+    .exec('python3', '/home/gareth/tickscripts/gitalert.py')
     .stateChangesOnly()
 
 var dman = data
@@ -36,5 +34,5 @@ var dman = data
     .id('{{ index .Tags "name" }} gigavision deadman')
     .message('{{ if eq .Level "OK" }}' + message_alive + '{{ else }}' + message_dead + '{{ end }}.')
     .slack()
-    .exec('python3', '/home/gareth/tickscripts/gitalert.py', notifyusers)
+    .exec('python3', '/home/gareth/tickscripts/gitalert.py')
     .stateChangesOnly()

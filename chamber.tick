@@ -1,7 +1,5 @@
 dbrp "chambers"."autogen"
 
-var notifyusers = 'gdunstone,richardpoire,TimeScience,zarlo,pburrell2,appf-bot'
-
 var interval = 4h
 var oneday = 24h
 var message_dead = '[OFF] Chamber {{ .ID }} NO DATA'
@@ -33,7 +31,7 @@ var temp_diff_alert = data
     .id('{{ index .Tags "host" }}')
     .message('{{ if eq .Level "OK" }}' + message_difference_ok + '{{ else }}' + message_difference + '{{ end }}.')
     .slack()
-    .exec('python3', '/home/gareth/tickscripts/gitalert.py', 'chamber temperature difference', notifyusers)
+    .exec('python3', '/home/gareth/tickscripts/gitalert.py')
     .stateChangesOnly()
 
 var temp_spread_alert = data
@@ -48,7 +46,7 @@ var temp_spread_alert = data
     .crit(lambda: "temp_recorded_spread" < 3.0)
     .id('{{ index .Tags "host" }} chamber temperature spread')
     .message('{{ if eq .Level "OK" }}' + message_spread_ok + '{{ else }}' + message_spread + '{{ end }}.')
-    .exec('python3', '/home/gareth/tickscripts/gitalert.py', notifyusers)
+    .exec('python3', '/home/gareth/tickscripts/gitalert.py')
     .slack()
     .stateChangesOnly()
 
@@ -57,5 +55,5 @@ var dman = data
     .id('{{ index .Tags "host" }} chamber deadman')
     .message('{{ if eq .Level "OK" }}' + message_alive + '{{ else }}' + message_dead + '{{ end }}.')
     .slack()
-    .exec('python3', '/home/gareth/tickscripts/gitalert.py',  notifyusers)
+    .exec('python3', '/home/gareth/tickscripts/gitalert.py')
     .stateChangesOnly()

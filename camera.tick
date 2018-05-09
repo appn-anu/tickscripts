@@ -1,7 +1,5 @@
 dbrp "chambers"."autogen"
 
-var notifyusers = 'gdunstone,richardpoire,TimeScience,zarlo,pburrell2,appf-bot'
-
 var interval = 30m
 var message_dead = '[OFF] Camera {{ .ID }}'
 var message_alive = '[OK] Camera {{ .ID }}'
@@ -16,5 +14,5 @@ var data = stream
         .id('{{ index .Tags "camera_name" }} camera deadman')
         .message('{{ if eq .Level "OK" }}' + message_alive + '{{ else }}' + message_dead + '{{ end }}.')
         .slack()
-        .exec('python3', '/home/gareth/tickscripts/gitalert.py', notifyusers)
+        .exec('python3', '/home/gareth/tickscripts/gitalert.py')
         .stateChangesOnly()
