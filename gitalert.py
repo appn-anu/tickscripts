@@ -26,7 +26,7 @@ if type(schedule_data['notify_always']) is list:
 elif type(schedule_data['notify_always']) is str:
     always = schedule_data['notify_always'].strip()
 
-all_assignees = schedule_data['notify_on_days'][day_of_week]]
+all_assignees = schedule_data['notify_on_days'][day_of_week]
 
 if always is not None and always not in ["", ",", " "]:
     all_assignees = ",".join([always, schedule_data['notify_on_days'][day_of_week]])
