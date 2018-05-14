@@ -1,7 +1,7 @@
 dbrp "chambers"."autogen"
 
-var interval = 4h
-var oneday = 24h
+var interval = 10m
+var oneday = 18h
 var message_dead = '[OFF] Chamber {{ .ID }} NO DATA'
 var message_alive = '[OK] Chamber {{ .ID }} HAS DATA'
 var message_difference = '[CRIT] Chamber {{ .ID }} TEMP DIFF {{ index .Fields "temp_diff_mean" | printf "%.2f" }}'
