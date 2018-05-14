@@ -6,7 +6,7 @@ var message_dead = '[OFF] Gigavision {{ .ID }} NO DATA'
 var message_alive = '[OK] Gigavision {{ .ID }} HAS DATA'
 var message_total = '[CRIT] Gigavision {{ .ID }} TOTAL DIFF {{ index .Fields "total_images_max" | printf "%.0f"}}'
 var message_total_ok = '[OK] Gigavision {{ .ID }} TOTAL DIFF'
-var message_timing_expired = '[CRIT] Gigavision {{ .ID }} TIMING EXPIRY {{ index .Fields "timing_total_s" | printf "%.0f"}}'
+var message_timing_expired = '[CRIT] Gigavision {{ .ID }} TIMING EXPIRY'
 
 var data = stream
   |from()
