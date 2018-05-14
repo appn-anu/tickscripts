@@ -51,7 +51,7 @@ var temp_spread_alert = data
     .stateChangesOnly()
 
 var dman = data
-  |deadman(0.0, interval)
+  |deadman(0.0, 60m)
     .id('{{ index .Tags "host" }} chamber deadman')
     .message('{{ if eq .Level "OK" }}' + message_alive + '{{ else }}' + message_dead + '{{ end }}.')
     .slack()
