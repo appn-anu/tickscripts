@@ -32,8 +32,14 @@ var max_total = data
     .stateChangesOnly()
 
 var timing = data
+  |window()
+    .fillPeriod()
+    .align()
+    .period(per)
+    .every(interval)
+  |last('timing_total_s').as('timing_total_s_last')
   |alert()
-    .crit(lambda: "timing_total_s" >= 3600.0)
+    .crit(lambda: "timing_total_s_last" >= 3600.0)
     .id('{{ index .Tags "name" }} gigavision total timing')
     .message(message_timing_expired)
     .slack()
