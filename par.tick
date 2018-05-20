@@ -2,11 +2,11 @@ dbrp "chambers"."autogen"
 
 var oneday = 24h
 var interval = 1h
-var message_dead = '[OFF] PAR {{ .ID }} NO DATA'
-var message_alive = '[OK] PAR {{ .ID }} HAS DATA'
+var message_dead = '[OFF] PAR {{ .ID }}'
+var message_alive = '[OK] PAR {{ .ID }}'
 
-var message_spread = '[CRIT] PAR {{ .ID }} SPREAD {{ index .Fields "par_spread" | printf "%.2f" }}'
-var message_spread_ok = '[OK] PAR {{ .ID }} SPREAD'
+var message_spread = '[CRIT] PAR {{ .ID }} {{ index .Fields "par_spread" | printf "%.2f" }}'
+var message_spread_ok = '[OK] PAR {{ .ID }}'
 
 var data = stream
   |from()
