@@ -17,14 +17,14 @@ var data = stream
     .groupBy('host')
 
 var temp_diff_alert = data
-  |eval(lambda: abs("temp_target" - "temp_recorded"))
+  |eval(lambda: abs("temp_target" - "temp_recorded")) // get abs temperature difference
     .as('temp_diff')
   |alert()
-    .crit(lambda: "temp_diff" > 2.0)
+    .crit(lambda: "temp_diff" > 2.0) // abs temperature difference shouldnt be over 2
     .id('{{ index .Tags "host" }} temperature diff')
     .message('{{ if eq .Level "OK" }}' + message_difference_ok + '{{ else }}' + message_difference + '{{ end }}.')
-    .slack()
     .exec('python3', '/home/gareth/tickscripts/gitalert.py')
+    .slack()
     .stateChangesOnly()
 
 var temp_spread_alert = data
