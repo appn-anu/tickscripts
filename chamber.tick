@@ -17,7 +17,12 @@ var data = stream
     .groupBy('host')
 
 var temp_diff_alert = data
-  |eval(lambda: abs("temp_target" - "temp_recorded")) // get abs temperature difference
+  |window()
+    .fillPeriod()
+    .align()
+    .period(30m)
+    .every(10m)
+  |eval(lambda: min(abs("temp_target" - "temp_recorded"))) // get abs temperature difference
     .as('temp_diff')
   |alert()
     .crit(lambda: "temp_diff" > 2.0) // abs temperature difference shouldnt be over 2
