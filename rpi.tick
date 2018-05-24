@@ -1,8 +1,8 @@
 dbrp "chambers"."autogen"
 
 var interval = 5m
-var message_dead = '[OFF] RPi {{ .ID }}'
-var message_alive = '[OK] RPi {{ .ID }}'
+var message_dead = '[OFF] {{ .ID }}'
+var message_alive = '[OK] {{ .ID }}'
 
 var data = stream
     |from()
@@ -11,7 +11,7 @@ var data = stream
         .measurement('system')
         .groupBy(*)
     |deadman(0.0, interval)
-        .id('{{ index .Tags "host" }} deadman')
+        .id('{{ index .Tags "host" }} RPi deadman')
         .message('{{ if eq .Level "OK" }}' + message_alive + '{{ else }}' + message_dead + '{{ end }}.')
         .slack()
         .exec('python3', '/home/gareth/tickscripts/gitalert.py')

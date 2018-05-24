@@ -2,11 +2,11 @@ dbrp "capture_server"."autogen"
 
 var interval = 1h
 var per = 1h
-var message_dead = '[OFF] Gigavision {{ .ID }}'
-var message_alive = '[OK] Gigavision {{ .ID }}'
-var message_total = '[CRIT] Gigavision {{ .ID }} {{ index .Fields "total_images_max" | printf "%.0f"}}'
-var message_total_ok = '[OK] Gigavision {{ .ID }}'
-var message_timing_expired = '[CRIT] Gigavision {{ .ID }}'
+var message_dead = '[OFF] {{ .ID }}'
+var message_alive = '[OK] {{ .ID }}'
+var message_total = '[CRIT] {{ .ID }} {{ index .Fields "total_images_max" | printf "%.0f"}}'
+var message_total_ok = '[OK] {{ .ID }}'
+var message_timing_expired = '[CRIT] {{ .ID }}'
 
 var data = stream
   |from()
