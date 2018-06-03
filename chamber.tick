@@ -44,6 +44,21 @@ var temp_spread_alert = data
     .slack()
     .stateChangesOnly()
 
+var par_spread_alert = data
+  |window()
+    .align()
+    .period(oneday)
+    .every(interval)
+  |spread('par')
+    .as('par_spread')
+  |alert()
+    .crit(lambda: "par_spread" < 5.0)
+    .id('{{ index .Tags "host" }} par spread')
+    .message('{{ if eq .Level "OK" }}' + message_spread_ok + '{{ else }}' + message_spread + '{{ end }}.')
+    .slack()
+    .exec('python3', '/home/gareth/tickscripts/gitalert.py')
+    .stateChangesOnly()
+
 var dman = data
   |deadman(0.0, 30m)
     .id('{{ index .Tags "host" }} chamber deadman')
