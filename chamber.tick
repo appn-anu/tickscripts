@@ -19,7 +19,6 @@ var data = stream
 var temp_diff_alert = data
   |window()
     .period(30m)
-    .every(0)
   |eval(lambda: min(abs("temp_target" - "temp_recorded"))) // get abs temperature difference
     .as('temp_diff')
   |alert()
