@@ -17,7 +17,6 @@ var data = stream
 
 var par_spread_alert = data
   |window()
-    .fillPeriod()
     .align()
     .period(oneday)
     .every(interval)

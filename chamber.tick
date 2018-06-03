@@ -18,10 +18,8 @@ var data = stream
 
 var temp_diff_alert = data
   |window()
-    .fillPeriod()
-    .align()
     .period(30m)
-    .every(10m)
+    .every(0)
   |eval(lambda: min(abs("temp_target" - "temp_recorded"))) // get abs temperature difference
     .as('temp_diff')
   |alert()
@@ -34,7 +32,6 @@ var temp_diff_alert = data
 
 var temp_spread_alert = data
   |window()
-    .fillPeriod()
     .align()
     .period(oneday)
     .every(interval)
@@ -49,7 +46,7 @@ var temp_spread_alert = data
     .stateChangesOnly()
 
 var dman = data
-  |deadman(0.0, 60m)
+  |deadman(0.0, 30m)
     .id('{{ index .Tags "host" }} chamber deadman')
     .message('{{ if eq .Level "OK" }}' + message_alive + '{{ else }}' + message_dead + '{{ end }}.')
     .slack()

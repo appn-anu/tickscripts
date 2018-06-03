@@ -17,7 +17,6 @@ var data = stream
 
 var max_total = data
   |window()
-    .fillPeriod()
     .align()
     .period(per)
     .every(interval)
