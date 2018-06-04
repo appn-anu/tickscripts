@@ -8,6 +8,8 @@ var message_difference = '[CRIT] {{ .ID }} {{ index .Fields "temp_diff" | printf
 var message_difference_ok = '[OK] {{ .ID }}'
 var message_spread = '[CRIT] {{ .ID }} {{ index .Fields "temp_recorded_spread" | printf "%.2f" }}'
 var message_spread_ok = '[OK] {{ .ID }}'
+var message_par_spread = '[CRIT] {{ .ID }} {{ index .Fields "par_spread" | printf "%.2f" }}'
+
 
 var data = stream
   |from()
@@ -19,6 +21,8 @@ var data = stream
 var temp_diff_alert = data
   |window()
     .period(30m)
+    .every(5m)
+    .fillPeriod()
   |eval(lambda: min(abs("temp_target" - "temp_recorded"))) // get abs temperature difference
     .as('temp_diff')
   |alert()
@@ -27,7 +31,7 @@ var temp_diff_alert = data
     .message('{{ if eq .Level "OK" }}' + message_difference_ok + '{{ else }}' + message_difference + '{{ end }}.')
     .exec('python3', '/home/gareth/tickscripts/gitalert.py')
     .slack()
-    .stateChangesOnly()
+    .stateChangesOnly(24h)
 
 var temp_spread_alert = data
   |window()
@@ -56,7 +60,7 @@ var par_spread_alert = data
   |alert()
     .crit(lambda: "par_spread" < 5.0)
     .id('{{ index .Tags "host" }} par spread')
-    .message('{{ if eq .Level "OK" }}' + message_spread_ok + '{{ else }}' + message_spread + '{{ end }}.')
+    .message('{{ if eq .Level "OK" }}' + message_spread_ok + '{{ else }}' + message_par_spread + '{{ end }}.')
     .slack()
     .exec('python3', '/home/gareth/tickscripts/gitalert.py')
     .stateChangesOnly()
