@@ -18,12 +18,15 @@ var data = stream
     .measurement('conviron')
     .groupBy('host')
 
-var temp_diff_alert = data
+var temp_diff_window = data
   |window()
     .period(30m)
     .every(5m)
     .fillPeriod()
-  |eval(lambda: min(abs("temp_target" - "temp_recorded"))) // get abs temperature difference
+    .align()
+  |eval(lambda: abs("temp_target" - "temp_recorded")) // get abs temperature difference
+    .as('temp_diff_window')
+  |min('temp_diff_window')
     .as('temp_diff')
   |alert()
     .crit(lambda: "temp_diff" > 2.0) // abs temperature difference shouldnt be over 2
@@ -31,7 +34,7 @@ var temp_diff_alert = data
     .message('{{ if eq .Level "OK" }}' + message_difference_ok + '{{ else }}' + message_difference + '{{ end }}.')
     .exec('python3', '/home/gareth/tickscripts/gitalert.py')
     .slack()
-    .stateChangesOnly(24h)
+    .stateChangesOnly()
 
 var temp_spread_alert = data
   |window()
