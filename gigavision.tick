@@ -1,48 +1,56 @@
-dbrp "capture_server"."autogen"
+kkdbrp "capture_server"."autogen"
 
 var interval = 1h
+
 var per = 1h
+
 var message_dead = '[OFF] {{ .ID }}'
+
 var message_alive = '[OK] {{ .ID }}'
+
 var message_total = '[CRIT] {{ .ID }} {{ index .Fields "total_images_max" | printf "%.0f"}}'
+
 var message_total_ok = '[OK] {{ .ID }}'
+
 var message_timing_expired = '[CRIT] {{ .ID }}'
+var message_timing_ok = '[OK] {{ .ID }}'
 
 var data = stream
-  |from()
-    .database('capture_server')
-    .retentionPolicy('autogen')
-    .measurement('gigavision')
-    .groupBy('name')
+    |from()
+        .database('capture_server')
+        .retentionPolicy('autogen')
+        .measurement('gigavision')
+        .groupBy('name')
 
 var max_total = data
-  |window()
-    .align()
-    .period(per)
-    .every(interval)
-  |max('total_images')
-    .as('total_images_max')
-  |alert()
-    .crit(lambda: "total_images_max" <= 1.0)
-    .id('{{ index .Tags "name" }} gigavision num images difference')
-    .message('{{ if eq .Level "OK" }}' + message_total_ok + '{{ else }}' + message_total + '{{ end }}.')
-    .slack()
-    .exec('python3', '/home/gareth/tickscripts/gitalert.py')
-    .stateChangesOnly()
+    |window()
+        .align()
+        .period(per)
+        .every(interval)
+    |max('total_images')
+        .as('total_images_max')
+    |alert()
+        .crit(lambda: "total_images_max" <= 1.0)
+        .id('{{ index .Tags "name" }} gigavision num images difference')
+        .message('{{ if eq .Level "OK" }}' + message_total_ok + '{{ else }}' + message_total + '{{ end }}.')
+        .slack()
+        .exec('python3', '/home/gareth/tickscripts/gitalert.py')
+        .stateChangesOnly()
 
 var timing = data
-  |default()
-    .field('timing_total_s', 0.0)
-  |alert()
-    .crit(lambda: "timing_total_s" >= 3600.0)
-    .id('{{ index .Tags "name" }} gigavision total timing')
-    .message(message_timing_expired)
-    .slack()
+    |default()
+        .field('timing_total_s', 0.0)
+    |alert()
+        .crit(lambda: "timing_total_s" >= 3600.0)
+        .id('{{ index .Tags "name" }} gigavision total timing')
+        .message('{{ if eq .Level "OK" }}' + message_timing_ok + '{{ else }}' + message_timing_expired + '{{ end }}.')
+        .slack()
 
 var dman = data
-  |deadman(0.0, interval, lambda: hour("time") >= 7 AND hour("time") <= 18)
-    .id('{{ index .Tags "name" }} gigavision deadman')
-    .message('{{ if eq .Level "OK" }}' + message_alive + '{{ else }}' + message_dead + '{{ end }}.')
-    .slack()
-    .exec('python3', '/home/gareth/tickscripts/gitalert.py')
-    .stateChangesOnly()
+    |deadman(0.0, interval, lambda: hour("time") >= 7 AND hour("time") <= 18)
+        .id('{{ index .Tags "name" }} gigavision deadman')
+        .message('{{ if eq .Level "OK" }}' + message_alive + '{{ else }}' + message_dead + '{{ end }}.')
+        .slack()
+        .exec('python3', '/home/gareth/tickscripts/gitalert.py')
+        .stateChangesOnly()
+
