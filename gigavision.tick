@@ -1,4 +1,4 @@
-kkdbrp "capture_server"."autogen"
+dbrp "capture_server"."autogen"
 
 var interval = 1h
 
@@ -53,4 +53,3 @@ var dman = data
         .slack()
         .exec('python3', '/home/gareth/tickscripts/gitalert.py')
         .stateChangesOnly()
-
