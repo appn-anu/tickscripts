@@ -37,6 +37,7 @@ var temp_diff_window = data
     .stateChangesOnly()
 
 var temp_spread_alert = data
+  .where(lambda: "group" == 'spc')
   |window()
     .align()
     .period(oneday)
