@@ -75,7 +75,7 @@ def make_issue():
 for iss in repo.get_issues():
     if data['id'] in iss.title:
         iss.create_comment(data['message'])
-        notify_slack(iss, data['message'])
+        notify_slack(iss, updated=True)
         sys.exit(0)
 
 iss = make_issue()
