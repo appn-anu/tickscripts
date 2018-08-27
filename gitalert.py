@@ -35,10 +35,14 @@ if always is not None and always not in ["", ",", " "]:
 
 def notify_slack(issue):
 
-    color = "#36a64f"
-    if "CRITICAL" in data['level']:
-        color = "#FF0000"
+    color = "good"
+    if "critical" in data['level'].lower():
+        color = "danger"
+    if "warning" in data['level'].lower():
+        color = "warning"
+
     request_data = {
+        "mrkdown_in": ["text"],
         "attachments": [
             {
                 "fallback": data['message'],
