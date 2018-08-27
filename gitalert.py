@@ -6,7 +6,7 @@ import datetime
 import yaml
 import time
 from github import Github, GithubObject
-config = json.load(open('/home/gareth/tickscripts/config.json'))
+config = json.load(open('/home/stormaes/tickscripts/config.json'))
 g = Github(config['token'])
 
 user = g.get_organization(config['org'])
@@ -34,10 +34,11 @@ all_assignees = schedule_data['notify_on_days'][day_of_week]
 if always is not None and always not in ["", ",", " "]:
     all_assignees = ",".join([always, schedule_data['notify_on_days'][day_of_week]])
 
-def notify_slack(issue):
-
+def notify_slack(issue=None):
     color = "good"
     if "critical" in data['level'].lower():
+        color = "danger"
+    if "off" in data['level'].lower():
         color = "danger"
     if "warning" in data['level'].lower():
         color = "warning"
@@ -46,18 +47,20 @@ def notify_slack(issue):
         "mrkdown_in": ["text"],
         "attachments": [
             {
-                "fallback": data['message'],
                 "color": color,
-                "pretext": data['id'],
-                "title": issue.title,
-                "title_link": issue.html_url,
-                "text": data['message'],
+                "fallback": data['message'],
+                "text": full_title+"\n\n_issue already closed_",
                 "footer": "Kapacitor",
                 "footer_icon": "https://traitcapture.org/static/img/mascot-kapacitor-transparent_png-16x16.png",
                 "ts": time.time()
             }
         ]
     }
+    if issue is not None:
+        request_data['attachments'][0]['title'] = issue.title
+        request_data['attachments'][0]['title_link'] = issue.html_url
+        del request_data['attachments'][0]['text']
+
     r = requests.post(
         slack_hook,
         data = json.dumps(request_data),
@@ -83,5 +86,8 @@ for iss in repo.get_issues():
         notify_slack(iss)
         sys.exit(0)
 
+if "ok" in data['level'].lower():
+    notify_slack()
+    sys.exit(0)
 iss = make_issue()
 notify_slack(iss)
