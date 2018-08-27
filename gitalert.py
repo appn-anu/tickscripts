@@ -33,7 +33,7 @@ all_assignees = schedule_data['notify_on_days'][day_of_week]
 if always is not None and always not in ["", ",", " "]:
     all_assignees = ",".join([always, schedule_data['notify_on_days'][day_of_week]])
 
-def notify_slack(issue, updated=False):
+def notify_slack(issue):
 
     color = "#36a64f"
     if "CRITICAL" in data['level']:
@@ -46,7 +46,7 @@ def notify_slack(issue, updated=False):
                 "pretext": data['id'],
                 "title": issue.title,
                 "title_link": issue.html_url,
-                "text": "This git issue was just {}".format("created" if not updated else "updated"),
+                "text": data['message'],
                 "footer": "Kapacitor"
             }
         ]
@@ -75,7 +75,7 @@ def make_issue():
 for iss in repo.get_issues():
     if data['id'] in iss.title:
         iss.create_comment(data['message'])
-        notify_slack(iss, updated=True)
+        notify_slack(iss)
         sys.exit(0)
 
 iss = make_issue()
