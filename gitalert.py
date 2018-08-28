@@ -59,7 +59,7 @@ def notify_slack(issue=None):
         ]
     }
     if issue is not None:
-        request_data['attachments'][0]['title'] = issue.title
+        request_data['attachments'][0]['title'] = data['message']
         request_data['attachments'][0]['title_link'] = issue.html_url
         del request_data['attachments'][0]['text']
         # if this is an ok message
