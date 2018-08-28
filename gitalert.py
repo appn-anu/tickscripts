@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
-import sys
+import sys, os
 import json
 import requests
 import datetime
 import yaml
 import time
 from github import Github, GithubObject
-config = json.load(open('/home/gareth/tickscripts/config.json'))
+curpath = os.path.abspath(__file__)
+mydir = os.path.dirname(curpath)
+config = json.load(open(os.path.join(mydir, 'config.json')))
 g = Github(config['token'])
 
 user = g.get_organization(config['org'])
