@@ -68,7 +68,7 @@ def notify_slack(issue=None):
             if 'fixed' in [x.name.lower() for x in issue.labels]:
                 # close this issue
                 issue.edit(state='closed')
-                request_data['attachments'][0]['text'] = full_title+"\n\n_issue closed by system_",
+                request_data['attachments'][0]['text'] = full_title+"\n\n_issue closed by appf-bot_",
 
     r = requests.post(
         slack_hook,
