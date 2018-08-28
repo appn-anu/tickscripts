@@ -36,7 +36,7 @@ if always is not None and always not in ["", ",", " "]:
 
 def notify_slack(issue=None):
     color = "good"
-    if "critical" in data['level'].lower():
+    if "crit" in data['level'].lower():
         color = "danger"
     if "off" in data['level'].lower():
         color = "danger"
