@@ -1,5 +1,5 @@
 {
   "message": "test alert. \n\nif this issue is open, you may close it",
   "level": "TEST",
-  "id": "GCTEST"
+  "id": "GCTEST test alert"
 }
