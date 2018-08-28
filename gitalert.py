@@ -61,15 +61,13 @@ def notify_slack(issue=None):
     if issue is not None:
         request_data['attachments'][0]['title'] = data['message']
         request_data['attachments'][0]['title_link'] = issue.html_url
-        del request_data['attachments'][0]['text']
-        # if this is an ok message
-        if 'ok' in data['level'].lower():
-            # if fixed is in the labels
-            if 'fixed' in [x.name.lower() for x in issue.labels]:
-                # close this issue
-                issue.edit(state='closed')
-                request_data['attachments'][0]['text'] = full_title+"\n\n_issue closed by appf-bot_",
-
+        # if this is an ok message and fixed is in the labels
+        if 'ok' in data['level'].lower() and 'fixed' in [x.name.lower() for x in issue.labels]:
+            # close this issue
+            issue.edit(state='closed')
+            request_data['attachments'][0]['text'] = full_title+"\n\n_issue closed by appf-bot_"
+        else:
+            del request_data['attachments'][0]['text']
     r = requests.post(
         slack_hook,
         data = json.dumps(request_data),
@@ -99,4 +97,4 @@ if "ok" in data['level'].lower():
     notify_slack()
     sys.exit(0)
 iss = make_issue()
-notify_slack(iss)
+notify_slack(issue=iss)
