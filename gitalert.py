@@ -62,6 +62,13 @@ def notify_slack(issue=None):
         request_data['attachments'][0]['title'] = issue.title
         request_data['attachments'][0]['title_link'] = issue.html_url
         del request_data['attachments'][0]['text']
+        # if this is an ok message
+        if 'ok' in data['level'].lower():
+            # if fixed is in the labels
+            if 'fixed' in [x.name.lower() for x in issue.labels]:
+                # close this issue
+                issue.edit(state='closed')
+                request_data['attachments'][0]['text'] = full_title+"\n\n_issue closed by system_",
 
     r = requests.post(
         slack_hook,
@@ -85,7 +92,7 @@ def make_issue():
 for iss in repo.get_issues():
     if data['id'] in iss.title:
         iss.create_comment(data['message'])
-        notify_slack(iss)
+        notify_slack(issue=iss)
         sys.exit(0)
 
 if "ok" in data['level'].lower():
