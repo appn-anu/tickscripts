@@ -8,7 +8,7 @@ import time
 from github import Github, GithubObject
 curpath = os.path.abspath(__file__)
 mydir = os.path.dirname(curpath)
-config = json.load(open(os.path.join("mydir", 'config.json')))
+config = json.load(open(os.path.join(mydir, 'config.json')))
 g = Github(config['token'])
 
 user = g.get_organization(config['org'])
