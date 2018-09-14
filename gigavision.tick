@@ -33,7 +33,7 @@ var max_total = data
         .crit(lambda: "total_images_max" <= 1.0)
         .id('{{ index .Tags "name" }} gigavision num images difference')
         .message('{{ if eq .Level "OK" }}' + message_total_ok + '{{ else }}' + message_total + '{{ end }}.')
-        .exec('python3', '/home/gareth/tickscripts/gitalert.py')
+        .exec('python3', '/etc/kapacitor/load/tasks/gitalert.py')
         .stateChangesOnly()
 
 var timing = data
@@ -49,5 +49,5 @@ var dman = data
     |deadman(0.0, interval, lambda: hour("time") >= 7 AND hour("time") <= 18)
         .id('{{ index .Tags "name" }} gigavision deadman')
         .message('{{ if eq .Level "OK" }}' + message_alive + '{{ else }}' + message_dead + '{{ end }}.')
-        .exec('python3', '/home/gareth/tickscripts/gitalert.py')
+        .exec('python3', '/etc/kapacitor/load/tasks/gitalert.py')
         .stateChangesOnly()
