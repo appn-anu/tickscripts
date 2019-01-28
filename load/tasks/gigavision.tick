@@ -46,7 +46,7 @@ var timing = data
         .slack()
 
 var dman = data
-    |deadman(0.0, interval, lambda: hour("time") >= 7 AND hour("time") <= 18)
+    |deadman(0.0, interval, lambda: hour("time") >= 8 AND hour("time") <= 18)
         .id('{{ index .Tags "name" }} gigavision deadman')
         .message('{{ if eq .Level "OK" }}' + message_alive + '{{ else }}' + message_dead + '{{ end }}.')
         .exec('python3', '/etc/kapacitor/python/gitalert.py')
