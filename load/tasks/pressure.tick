@@ -24,6 +24,6 @@ var pressure_diff = data
   |alert()
     .crit(lambda: "PressureDiff" < 50.0) // abs pressure difference shouldnt be under 50
     .id('Facility Pressure Difference')
-    .message('{{ if eq .Level "OK" }}' + message_alivee + '{{ else }}' + message_difference + '{{ end }}.')
+    .message('{{ if eq .Level "OK" }}' + message_alive + '{{ else }}' + message_difference + '{{ end }}.')
     .exec('python3', '/etc/kapacitor/python/gitalert.py')
     .stateChangesOnly()
