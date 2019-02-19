@@ -19,7 +19,7 @@ var pressure_diff = data
     .every(5m)
     .fillPeriod()
     .align()
-  |eval(lambda: abs(min("HiPressure") - max("LoPressure")) // get abs temperature difference minmax across all chambers
+  |eval(lambda: abs(min("HiPressure") - max("LoPressure"))) // get abs temperature difference minmax across all chambers
     .as('PressureDiff')
   |alert()
     .crit(lambda: "PressureDiff" < 50.0) // abs pressure difference shouldnt be under 50
