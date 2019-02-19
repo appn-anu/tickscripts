@@ -6,14 +6,11 @@ var message_difference = '[CRIT] {{ .ID }} \n\n
                           LoPressure: {{index .Fields "LoPressure"}}psi \n\n
                           Difference: {{ index .Fields "PressureDiff" | printf "%.1f" }}psi'
 
-var data = stream
+stream
   |from()
     .retentionPolicy('autogen')
     .database('chambers')
     .measurement('conviron2')
-    //.groupBy('host')
-
-var pressure_diff = data
   |window()
     .period(10m)
     .every(5m)
