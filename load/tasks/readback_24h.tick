@@ -22,6 +22,7 @@ var historical = batch
         .as('historical', 'current')
       |eval(lambda: "current.value" - "historical.value")
         .as('value')
+      |log()
       |alert()
         .crit(lambda: "value" > "current.value" * 0.1 OR "value" < "current.value" * -0.1)
         .id('24h value difference')
