@@ -23,7 +23,7 @@ var historical = batch
       |eval(lambda: "current.value" - "historical.value")
         .as('value')
       |alert()
-        .crit(lambda: "value" > "current.value" * 0.1 || value < "current.value" * -0.1)
+        .crit(lambda: "value" > "current.value" * 0.1 OR "value" < "current.value" * -0.1)
         .id('24h value difference')
         .message('{{ if eq .Level "OK" }}' + message_alive + '{{ else }}' + message_difference + '{{ end }}.')
         .exec('python3', '/etc/kapacitor/python/gitalert.py')
