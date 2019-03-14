@@ -4,14 +4,14 @@ var message_alive = '[OK] {{ .ID }}'
 var message_difference = '[CRIT] {{ .ID }} Temperature {{index .Fields "value"}}'
 
 var current = batch
-  |query('select Temperature from "conviron2" limit 1')
+  |query('select Temperature from chambers.autogen.conviron2 limit 1')
   .period(10m)
   .every(10m)
   .align()
   .groupBy('host')
 
 var historical = batch
-  |query('select Temperature from "conviron2" limit 1')
+  |query('select Temperature from chambers.autogen.conviron2 limit 1')
     .period(10m)
     .every(10m)
     .offset(24h)
