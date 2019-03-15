@@ -1,0 +1,36 @@
+dbrp "chambers"."autogen"
+
+var message_alive = '[OK] {{ .ID }}'
+var message_difference = '[CRIT] {{ .ID }}
+ past: {{index .Fields "historical.Par" | printf "%.1f"}}
+ now: {{index .Fields "current.Par" | printf "%.1f"}}
+ diff: {{index .Fields "value" | printf "%.1f"}}'
+ 
+var current = batch
+  |query('select Par from chambers.autogen.conviron2 limit 1')
+  .period(20m)
+  .every(10m)
+  .align()
+  .groupBy('host')
+
+
+var historical = batch
+  |query('select Par from chambers.autogen.conviron2 limit 1')
+    .period(20m)
+    .every(10m)
+    .offset(24h)
+    .align()
+    .groupBy('host')
+      |shift(24h)
+      |join(current)
+        .tolerance(5m)
+        .as('historical', 'current')    
+      |eval(lambda: "current.Par" - "historical.Par")
+        .as('value')
+        .keep('historical.Par', 'current.Par', 'value')      
+      |alert()
+        .crit(lambda: "value" > "historical.Par" * 0.1 OR "value" < "historical.Par" * -0.1)
+        .id('{{ index .Tags "host" }} Temporal Par difference')
+        .message('{{ if eq .Level "OK" }}' + message_alive + '{{ else }}' + message_difference + '{{ end }}.')
+        .exec('python3', '/etc/kapacitor/python/gitalert.py')
+        .stateChangesOnly()
