@@ -2,9 +2,9 @@ dbrp "chambers"."autogen"
 
 var message_alive = '[OK] {{ .ID }}'
 var message_difference = '[CRIT] {{ .ID }}
- past: {{index .Fields "historical.Temperature" | printf "%.1f"}} (err ±{{index .Fields "tolerance" | printf "%.1f"}})
- now: {{index .Fields "current.Temperature" | printf "%.1f"}}
- diff: {{index .Fields "value" | printf "%.1f"}}'
+ past: {{index .Fields "historical.Temperature" | printf "%.1f"}}°C (err ±1.0°C)
+ now: {{index .Fields "current.Temperature" | printf "%.1f"}}°C
+ diff: {{index .Fields "value" | printf "%.1f"}}°C'
  
 var current = batch
   |query('select Temperature from chambers.autogen.conviron2 limit 1')
@@ -28,11 +28,8 @@ var historical = batch
       |eval(lambda: "current.Temperature" - "historical.Temperature")
         .as('value')
         .keep('historical.Temperature', 'current.Temperature', 'value')
-      |eval(lambda: "historical.Temperature" * 0.1)
-        .as('tolerance')
-        .keep('historical.Temperature', 'current.Temperature', 'value', 'tolerance')
       |alert()
-        .crit(lambda: "value" > "tolerance" OR "value" < "tolerance" * -1)
+        .crit(lambda: "value" > 1.0 OR "value" < -1.0)
         .id('{{ index .Tags "host" }} Temporal Temperature difference')
         .message('{{ if eq .Level "OK" }}' + message_alive + '{{ else }}' + message_difference + '{{ end }}.')
         .exec('python3', '/etc/kapacitor/python/gitalert.py')
