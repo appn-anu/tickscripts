@@ -29,7 +29,7 @@ var historical = batch
         .as('value')
         .keep('historical.Temperature', 'current.Temperature', 'value')
       |eval(lambda: "historical.Temperature" * 0.1)
-        .as("tolerance")
+        .as('tolerance')
         .keep('historical.Temperature', 'current.Temperature', 'value', 'tolerance')
       |alert()
         .crit(lambda: "value" > "tolerance" OR "value" < "tolerance" * -1)
