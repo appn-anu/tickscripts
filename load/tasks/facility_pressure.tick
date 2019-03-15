@@ -17,19 +17,18 @@ var data = stream
     .fillPeriod()
     .align()
 
-var HiPressureMin = data
-  |min('HiPressure')
 var LoPressureMax = data
   |max('LoPressure')
 
-var minmax = HiPressureMin
+var newData = data
+  |min('HiPressure')
   |join(LoPressureMax)
     .as('HiPressureMin', 'LoPressureMax')
   |eval(lambda: abs("HiPressureMin.min" - "LoPressureMax.max")) // get abs temperature difference minmax across all chambers
     .as('PressureDiff')
     .keep('HiPressureMin.min', 'LoPressureMax.max', 'PressureDiff')
   |alert()
-    .crit(lambda: "PressureDiff" < 50.0) // abs pressure difference shouldnt be under 50
+    .crit(lambda: "PressureDiff" < 50.0) // abs pressure difference shouldnt be over 50
     .id('Facility Pressure Difference')
     .message('{{ if eq .Level "OK" }}' + message_alive + '{{ else }}' + message_difference + '{{ end }}.')
     .exec('python3', '/etc/kapacitor/python/gitalert.py')
