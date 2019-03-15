@@ -24,7 +24,7 @@ var newData = data
   |min('HiPressure')
   |join(LoPressureMax)
     .as('HiPressureMin', 'LoPressureMax')
-  |eval(lambda: abs("HiPressureMin.min" - "LoPressureMax.max")) // get abs temperature difference minmax across all chambers
+  |eval(lambda: abs("HiPressureMin.min") - abs("LoPressureMax.max")) // get abs temperature difference minmax across all chambers
     .as('PressureDiff')
     .keep('HiPressureMin.min', 'LoPressureMax.max', 'PressureDiff')
   |alert()
