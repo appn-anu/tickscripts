@@ -2,7 +2,7 @@ dbrp "chambers"."autogen"
 
 var message_alive = '[OK] {{ .ID }}'
 var message_difference = '[CRIT] {{ .ID }}
- past: {{index .Fields "historical.Par" | printf "%.1f"}}
+ past: {{index .Fields "historical.Par" | printf "%.1f"}} (err ±{{index .Fields "tolerance" | printf "%.1f"}})
  now: {{index .Fields "current.Par" | printf "%.1f"}}
  diff: {{index .Fields "value" | printf "%.1f"}}'
  
@@ -27,10 +27,13 @@ var historical = batch
         .as('historical', 'current')    
       |eval(lambda: "current.Par" - "historical.Par")
         .as('value')
-        .keep('historical.Par', 'current.Par', 'value')      
+        .keep('historical.Par', 'current.Par', 'value')
+      |eval(lambda: "historical.Par" * 0.1)
+        .as("tolerance")
+        .keep('historical.Par', 'current.Par', 'value', 'tolerance')
       |alert()
-        .crit(lambda: "value" > "historical.Par" * 0.1 OR "value" < "historical.Par" * -0.1)
-        .id('{{ index .Tags "host" }} Temporal Par difference')
+        .crit(lambda: "value" > "tolerance" OR "value" < "tolerance" * -1)
+        .id('{{ index .Tags "host" }} Temporal PAR difference')
         .message('{{ if eq .Level "OK" }}' + message_alive + '{{ else }}' + message_difference + '{{ end }}.')
         .exec('python3', '/etc/kapacitor/python/gitalert.py')
         .stateChangesOnly()
