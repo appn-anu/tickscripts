@@ -27,7 +27,7 @@ var historical = batch
         .tolerance(5m)
         .as('historical', 'current')    
       |log()
-      |eval(lambda: "current.mean" - "historical.mea")
+      |eval(lambda: "current.mean" - "historical.mean")
         .as('value')
         .keep('historical.mean', 'current.mean', 'value')
       |eval(lambda: "historical.Par" * 0.1)
