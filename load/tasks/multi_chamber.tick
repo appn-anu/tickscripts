@@ -2,13 +2,17 @@ dbrp "chambers"."autogen"
 
 var interval = 10m
 var oneday = 18h
-var message_dead = '[OFF] {{ .ID }}'
+var message_dead = '[OFF] {{ .ID }}
+Link: http://grafana.traitcapture.org/d/spc/selected-chamber-spc?var-host={{index .Tags "host"}}&orgId=1'
 var message_alive = '[OK] {{ .ID }}'
-var message_difference = '[CRIT] {{ .ID }} {{ index .Fields "temp_diff" | printf "%.2f" }}'
+var message_difference = '[CRIT] {{ .ID }} {{ index .Fields "temp_diff" | printf "%.2f" }}
+Link: http://grafana.traitcapture.org/d/spc/selected-chamber-spc?var-host={{index .Tags "host"}}&orgId=1'
 var message_difference_ok = '[OK] {{ .ID }}'
-var message_spread = '[CRIT] {{ .ID }} {{ index .Fields "temp_recorded_spread" | printf "%.2f" }}'
+var message_spread = '[CRIT] {{ .ID }} {{ index .Fields "temp_recorded_spread" | printf "%.2f" }}
+Link: http://grafana.traitcapture.org/d/spc/selected-chamber-spc?var-host={{index .Tags "host"}}&orgId=1'
 var message_spread_ok = '[OK] {{ .ID }}'
-var message_par_spread = '[CRIT] {{ .ID }} {{ index .Fields "par_spread" | printf "%.2f" }}'
+var message_par_spread = '[CRIT] {{ .ID }} {{ index .Fields "par_spread" | printf "%.2f" }}
+Link: http://grafana.traitcapture.org/d/spc/selected-chamber-spc?var-host={{index .Tags "host"}}&orgId=1'
 
 
 var data = stream

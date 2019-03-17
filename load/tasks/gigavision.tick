@@ -22,19 +22,21 @@ var data = stream
         .measurement('gigavision')
         .groupBy('name')
 
-var max_total = data
-    |window()
-        .align()
-        .period(per)
-        .every(interval)
-    |max('total_images')
-        .as('total_images_max')
-    |alert()
-        .crit(lambda: "total_images_max" <= 1.0)
-        .id('{{ index .Tags "name" }} gigavision num images difference')
-        .message('{{ if eq .Level "OK" }}' + message_total_ok + '{{ else }}' + message_total + '{{ end }}.')
-        .exec('python3', '/etc/kapacitor/python/gitalert.py')
-        .stateChangesOnly()
+// this breaks all the time. Something to do with 
+// ts=2019-03-18T08:00:20.315+11:00 lvl=error msg="failed to realize reduce context from fields" service=kapacitor task_master=main task=gigavision node=max3 err="field \"total_images\" missing from point"
+// var max_total = data
+//    |window()
+//        .align()
+//        .period(per)
+//        .every(interval)
+//    |max('total_images')
+//        .as('total_images_max')
+//    |alert()
+//        .crit(lambda: "total_images_max" <= 1.0)
+//        .id('{{ index .Tags "name" }} gigavision num images difference')
+//        .message('{{ if eq .Level "OK" }}' + message_total_ok + '{{ else }}' + message_total + '{{ end }}.')
+//        .exec('python3', '/etc/kapacitor/python/gitalert.py')
+//        .stateChangesOnly()
 
 var timing = data
     |default()

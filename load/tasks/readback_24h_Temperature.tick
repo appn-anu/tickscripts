@@ -4,7 +4,8 @@ var message_alive = '[OK] {{ .ID }}'
 var message_difference = '[CRIT] {{ .ID }}
  past: {{index .Fields "historical.Temperature" | printf "%.1f"}}°C (err ±1.0°C)
  now: {{index .Fields "current.Temperature" | printf "%.1f"}}°C
- diff: {{index .Fields "value" | printf "%.1f"}}°C'
+ diff: {{index .Fields "value" | printf "%.1f"}}°C
+ Link: http://grafana.traitcapture.org/d/nonspc/selected-chamber?var-host={{index .Tags "host"}}&orgId=1'
  
 var current = batch
   |query('select Temperature from chambers.autogen.conviron2 limit 1')

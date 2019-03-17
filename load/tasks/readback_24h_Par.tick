@@ -2,35 +2,37 @@ dbrp "chambers"."autogen"
 
 var message_alive = '[OK] {{ .ID }}'
 var message_difference = '[CRIT] {{ .ID }}
- past: {{index .Fields "historical.Par" | printf "%.1f"}} (err ±10% {{index .Fields "tolerance" | printf "%.1f"}})
- now: {{index .Fields "current.Par" | printf "%.1f"}}
- diff: {{index .Fields "value" | printf "%.1f"}}'
+ past: {{index .Fields "historical.mean" | printf "%.1f"}} (err ±10% {{index .Fields "tolerance" | printf "%.1f"}})
+ now: {{index .Fields "current.mean" | printf "%.1f"}}
+ diff: {{index .Fields "value" | printf "%.1f"}}
+ Link: http://grafana.traitcapture.org/d/nonspc/selected-chamber?var-host={{index .Tags "host"}}&orgId=1'
  
 var current = batch
-  |query('select Par from chambers.autogen.conviron2 limit 1')
-  .period(20m)
+  |query('select mean(Par) from chambers.autogen.conviron2 limit 1')
+  .period(30m)
   .every(10m)
   .align()
-  .groupBy('host')
+  .groupBy('host', 30m)
 
 
 var historical = batch
-  |query('select Par from chambers.autogen.conviron2 limit 1')
-    .period(20m)
+  |query('select mean(Par) from chambers.autogen.conviron2 limit 1')
+    .period(30m)
     .every(10m)
     .offset(24h)
     .align()
-    .groupBy('host')
+    .groupBy('host', 30m)
       |shift(24h)
       |join(current)
         .tolerance(5m)
         .as('historical', 'current')    
-      |eval(lambda: "current.Par" - "historical.Par")
+      |log()
+      |eval(lambda: "current.mean" - "historical.mea")
         .as('value')
-        .keep('historical.Par', 'current.Par', 'value')
+        .keep('historical.mean', 'current.mean', 'value')
       |eval(lambda: "historical.Par" * 0.1)
         .as('tolerance')
-        .keep('historical.Par', 'current.Par', 'value', 'tolerance')
+        .keep('historical.mean', 'current.mean', 'value', 'tolerance')
       |alert()
         .crit(lambda: "value" > "tolerance" OR "value" < ("tolerance" * -1.0))
         .id('{{ index .Tags "host" }} Temporal PAR difference')

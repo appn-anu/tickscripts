@@ -1,7 +1,8 @@
 dbrp "chambers"."autogen"
 
 var interval = 5m
-var message_dead = '[OFF] {{ .ID }}'
+var message_dead = '[OFF] {{ .ID }}
+Link: http://grafana.traitcapture.org/d/spc/selected-chamber-spc?var-host={{index .Tags "host"}}&orgId=1'
 var message_alive = '[OK] {{ .ID }}'
 
 var data = stream
