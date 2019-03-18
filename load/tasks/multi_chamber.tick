@@ -2,17 +2,9 @@ dbrp "chambers"."autogen"
 
 var interval = 10m
 var oneday = 18h
-var message_dead = '[OFF] {{ .ID }}
-Link: http://grafana.traitcapture.org/d/spc/selected-chamber-spc?var-host={{index .Tags "host"}}&orgId=1'
-var message_alive = '[OK] {{ .ID }}'
-var message_difference = '[CRIT] {{ .ID }} {{ index .Fields "temp_diff" | printf "%.2f" }}
-Link: http://grafana.traitcapture.org/d/spc/selected-chamber-spc?var-host={{index .Tags "host"}}&orgId=1'
-var message_difference_ok = '[OK] {{ .ID }}'
-var message_spread = '[CRIT] {{ .ID }} {{ index .Fields "temp_recorded_spread" | printf "%.2f" }}
-Link: http://grafana.traitcapture.org/d/spc/selected-chamber-spc?var-host={{index .Tags "host"}}&orgId=1'
-var message_spread_ok = '[OK] {{ .ID }}'
-var message_par_spread = '[CRIT] {{ .ID }} {{ index .Fields "par_spread" | printf "%.2f" }}
-Link: http://grafana.traitcapture.org/d/spc/selected-chamber-spc?var-host={{index .Tags "host"}}&orgId=1'
+var message_dead = '[OFF] {{ .ID }}'
+var message_ok = '[OK] {{ .ID }}'
+var message_crit = '[CRIT] {{ .ID }} '
 
 
 var data = stream
@@ -34,8 +26,9 @@ var temp_diff_window = data
     .as('temp_diff')
   |alert()
     .crit(lambda: "temp_diff" > 2.0) // abs temperature difference shouldnt be over 2
-    .id('{{ index .Tags "host" }} chamber temperature diff')
-    .message('{{ if eq .Level "OK" }}' + message_difference_ok + '{{ else }}' + message_difference + '{{ end }}.')
+    .id('{{ index .Tags "host" }} spc chamber temperature diff')
+    .message('{{ if eq .Level "OK" }}' + message_ok + '{{ else }}' + message_crit + '{{ end }}')
+    .details('temp diff: {{ index .Fields "temp_diff" | printf "%.2f" }}')
     .exec('python3', '/etc/kapacitor/python/gitalert.py')
     .stateChangesOnly()
 
@@ -50,8 +43,9 @@ var temp_spread_alert = data
     .as('temp_recorded_spread')
   |alert()
     .crit(lambda: "temp_recorded_spread" < 3.0)
-    .id('{{ index .Tags "host" }} chamber temperature spread')
-    .message('{{ if eq .Level "OK" }}' + message_spread_ok + '{{ else }}' + message_spread + '{{ end }}.')
+    .id('{{ index .Tags "host" }} spc chamber temperature spread')
+    .message('{{ if eq .Level "OK" }}' + message_ok + '{{ else }}' + message_crit + '{{ end }}')
+    .details('temp spread: {{ index .Fields "temp_recorded_spread" | printf "%.2f" }}')
     .exec('python3', '/etc/kapacitor/python/gitalert.py')
     .stateChangesOnly()
 
@@ -65,14 +59,16 @@ var par_spread_alert = data
     .as('par_spread')
   |alert()
     .crit(lambda: "par_spread" < 5.0)
-    .id('{{ index .Tags "host" }} par spread')
-    .message('{{ if eq .Level "OK" }}' + message_spread_ok + '{{ else }}' + message_par_spread + '{{ end }}.')
+    .id('{{ index .Tags "host" }} spc par spread')
+    .message('{{ if eq .Level "OK" }}' + message_ok + '{{ else }}' + message_crit + '{{ end }}')
+    .details('par spread spc: {{ index .Fields "par_spread" | printf "%.2f" }}')
     .exec('python3', '/etc/kapacitor/python/gitalert.py')
     .stateChangesOnly()
 
 var dman = data
   |deadman(0.0, 30m)
-    .id('{{ index .Tags "host" }} chamber deadman')
-    .message('{{ if eq .Level "OK" }}' + message_alive + '{{ else }}' + message_dead + '{{ end }}.')
+    .id('{{ index .Tags "host" }} spc chamber deadman')
+    .message('{{ if eq .Level "OK" }}' + message_ok + '{{ else }}' + message_dead + '{{ end }}')
     .exec('python3', '/etc/kapacitor/python/gitalert.py')
+    .details('No Data')
     .stateChangesOnly()

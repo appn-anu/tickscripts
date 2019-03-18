@@ -1,5 +1,6 @@
 {
-  "message": "test alert. \n\nif this issue is open, you may close it",
-  "level": "TEST",
-  "id": "GCTEST test alert"
+  "message": "test alert.",
+  "level": "OK",
+  "id": "GC99 test alert spc",
+  "details": "hello, these are details\n\nkjhdfkjlahsdf"
 }

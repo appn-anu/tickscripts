@@ -5,6 +5,7 @@ import requests
 import datetime
 import yaml
 import time
+import re
 from github import Github, GithubObject
 curpath = os.path.abspath(__file__)
 mydir = os.path.dirname(curpath)
@@ -58,6 +59,24 @@ def notify_slack(issue=None):
             }
         ]
     }
+
+    if 'details' in data.keys():
+        chamberMatch = re.match(r'(GC\d\d)', data['id'])
+        if chamberMatch is not None:
+            chamber = chamberMatch.group()
+            link = "http://grafana.traitcapture.org/d/nonspc/selected-chamber?var-host={host}&orgId=1".format(host=chamber)
+            if 'camera' in  data['id'] or 'spc' in data['id']:
+                link= "http://grafana.traitcapture.org/d/spc/selected-chamber-spc?var-host={host}&orgId=1".format(host=chamber)
+            attach2 = {
+                "color": color,
+                "fallback": data['details'],
+                "title": "{host} Dashboard Link".format(host=chamber),
+                "title_link": link,
+                "footer": "Grafana",
+                "text": data['details'], 
+                "footer_icon": "https://traitcapture.org/static/img/mascot-grafana-transparent_png-16x16.png"
+            }
+            request_data['attachments'].append(attach2)
     if issue is not None:
         request_data['attachments'][0]['title'] = data['message']
         request_data['attachments'][0]['title_link'] = issue.html_url
@@ -66,8 +85,11 @@ def notify_slack(issue=None):
             # close this issue
             issue.edit(state='closed')
             request_data['attachments'][0]['text'] = full_title+"\n\n_issue closed by appf-bot_"
+            if len(request_data['attachments']) > 1:
+                request_data['attachments'].pop()
         else:
             del request_data['attachments'][0]['text']
+
     r = requests.post(
         slack_hook,
         data = json.dumps(request_data),
@@ -75,11 +97,15 @@ def notify_slack(issue=None):
     )
 
 def make_issue():
+    msg = "### "+data['message'] 
+    if 'details' in data:
+        msg += "\n"+data['details']
+        
     kwargs = {
-        "body": data['message'],
+        "body": msg,
         "labels": [data['level']]
     }
-
+    
     if "," in all_assignees:
         kwargs["assignees"] = [x.strip() for x in all_assignees.split(',')]
     else:
@@ -89,7 +115,10 @@ def make_issue():
 
 for iss in repo.get_issues():
     if data['id'] in iss.title:
-        iss.create_comment(data['message'])
+        msg = "### "+data['message'] 
+        if 'details' in data:
+            msg += "\n"+data['details']
+        iss.create_comment(msg)
         notify_slack(issue=iss)
         sys.exit(0)
 

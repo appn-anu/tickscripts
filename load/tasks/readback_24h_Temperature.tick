@@ -1,11 +1,11 @@
 dbrp "chambers"."autogen"
 
 var message_alive = '[OK] {{ .ID }}'
-var message_difference = '[CRIT] {{ .ID }}
- past: {{index .Fields "historical.Temperature" | printf "%.1f"}}°C (err ±1.0°C)
+var message_difference = '[CRIT] {{ .ID }}'
+
+var deets = 'past: {{index .Fields "historical.Temperature" | printf "%.1f"}}°C (err ±1.0°C)
  now: {{index .Fields "current.Temperature" | printf "%.1f"}}°C
- diff: {{index .Fields "value" | printf "%.1f"}}°C
- Link: http://grafana.traitcapture.org/d/nonspc/selected-chamber?var-host={{index .Tags "host"}}&orgId=1'
+ diff: {{index .Fields "value" | printf "%.1f"}}°C'
  
 var current = batch
   |query('select Temperature from chambers.autogen.conviron2 limit 1')
@@ -22,16 +22,17 @@ var historical = batch
     .offset(24h)
     .align()
     .groupBy('host')
-      |shift(24h)
-      |join(current)
-        .tolerance(5m)
-        .as('historical', 'current')    
-      |eval(lambda: "current.Temperature" - "historical.Temperature")
-        .as('value')
-        .keep('historical.Temperature', 'current.Temperature', 'value')
-      |alert()
-        .crit(lambda: "value" > 1.0 OR "value" < -1.0)
-        .id('{{ index .Tags "host" }} Temporal Temperature difference')
-        .message('{{ if eq .Level "OK" }}' + message_alive + '{{ else }}' + message_difference + '{{ end }}.')
-        .exec('python3', '/etc/kapacitor/python/gitalert.py')
-        .stateChangesOnly()
+  |shift(24h)
+  |join(current)
+    .tolerance(5m)
+    .as('historical', 'current')    
+  |eval(lambda: "current.Temperature" - "historical.Temperature")
+    .as('value')
+    .keep('historical.Temperature', 'current.Temperature', 'value')
+  |alert()
+    .crit(lambda: "value" > 1.0 OR "value" < -1.0)
+    .id('{{ index .Tags "host" }} Temporal Temperature difference')
+    .message('{{ if eq .Level "OK" }}' + message_alive + '{{ else }}' + message_difference + '{{ end }}')
+    .details(deets)
+    .exec('python3', '/etc/kapacitor/python/gitalert.py')
+    .stateChangesOnly()

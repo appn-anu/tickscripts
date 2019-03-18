@@ -1,7 +1,7 @@
 dbrp "chambers"."autogen"
 
 var message_alive = '[OK] {{ .ID }}'
-var message_difference = '[CRIT] {{ .ID }}
+var message_crit = '[CRIT] {{ .ID }}
  HiPressure: {{index .Fields "HiPressureMax.max" | printf "%.1f"}}psi
  LoPressure: {{index .Fields "LoPressureMin.max" | printf "%.1f"}}psi
  Difference: {{index .Fields "PressureDiff"  | printf "%.1f"}}psi'
@@ -24,12 +24,12 @@ var newData = data
   |min('HiPressure')
   |join(LoPressureMax)
     .as('HiPressureMin', 'LoPressureMax')
-  |eval(lambda: abs("HiPressureMin.min") - abs("LoPressureMax.max")) // get abs temperature difference minmax across all chambers
+  |eval(lambda: abs(float("HiPressureMin.min") - float("LoPressureMax.max"))) // get abs temperature difference minmax across all chambers
     .as('PressureDiff')
     .keep('HiPressureMin.min', 'LoPressureMax.max', 'PressureDiff')
   |alert()
     .crit(lambda: "PressureDiff" < 50.0) // abs pressure difference shouldnt be over 50
     .id('Facility Pressure Difference')
-    .message('{{ if eq .Level "OK" }}' + message_alive + '{{ else }}' + message_difference + '{{ end }}.')
+    .message('{{ if eq .Level "OK" }}' + message_alive + '{{ else }}' + message_crit + '{{ end }}.')
     .exec('python3', '/etc/kapacitor/python/gitalert.py')
     .stateChangesOnly()
