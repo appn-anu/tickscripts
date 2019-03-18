@@ -100,7 +100,15 @@ def make_issue():
     msg = "### "+data['message'] 
     if 'details' in data:
         msg += "\n"+data['details']
-        
+
+        chamberMatch = re.match(r'(GC\d\d)', data['id'])
+        if chamberMatch is not None:
+            chamber = chamberMatch.group()
+            link = "http://grafana.traitcapture.org/d/nonspc/selected-chamber?var-host={}&orgId=1".format(chamber)
+            if 'camera' in  data['id'] or 'spc' in data['id']:
+                link= "http://grafana.traitcapture.org/d/spc/selected-chamber-spc?var-host={}&orgId=1".format(chamber)
+            
+            msg += "\n" + "[Dashboard Link]({})".format(link)
     kwargs = {
         "body": msg,
         "labels": [data['level']]

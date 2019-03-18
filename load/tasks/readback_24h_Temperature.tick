@@ -3,21 +3,21 @@ dbrp "chambers"."autogen"
 var message_alive = '[OK] {{ .ID }}'
 var message_difference = '[CRIT] {{ .ID }}'
 
-var deets = 'past: {{index .Fields "historical.Temperature" | printf "%.1f"}}°C (err ±1.0°C)
- now: {{index .Fields "current.Temperature" | printf "%.1f"}}°C
+var deets = 'past: {{index .Fields "historical.mean" | printf "%.1f"}}°C (err ±1.5°C)
+ now: {{index .Fields "current.mean" | printf "%.1f"}}°C
  diff: {{index .Fields "value" | printf "%.1f"}}°C'
  
 var current = batch
-  |query('select Temperature from chambers.autogen.conviron2 limit 1')
-  .period(20m)
+  |query('select mean(Temperature) from chambers.autogen.conviron2 limit 1')
+  .period(30m)
   .every(10m)
   .align()
   .groupBy('host')
 
 
 var historical = batch
-  |query('select Temperature from chambers.autogen.conviron2 limit 1')
-    .period(20m)
+  |query('select mean(Temperature) from chambers.autogen.conviron2 limit 1')
+    .period(30m)
     .every(10m)
     .offset(24h)
     .align()
@@ -26,11 +26,11 @@ var historical = batch
   |join(current)
     .tolerance(5m)
     .as('historical', 'current')    
-  |eval(lambda: "current.Temperature" - "historical.Temperature")
+  |eval(lambda: "current.mean" - "historical.mean")
     .as('value')
-    .keep('historical.Temperature', 'current.Temperature', 'value')
+    .keep('historical.mean', 'current.mean', 'value')
   |alert()
-    .crit(lambda: "value" > 1.0 OR "value" < -1.0)
+    .crit(lambda: "value" > 1.5 OR "value" < -1.5)
     .id('{{ index .Tags "host" }} Temporal Temperature difference')
     .message('{{ if eq .Level "OK" }}' + message_alive + '{{ else }}' + message_difference + '{{ end }}')
     .details(deets)
