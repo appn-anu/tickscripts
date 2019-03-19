@@ -2,8 +2,8 @@ dbrp "chambers"."autogen"
 
 var message_alive = '[OK] {{ .ID }}'
 var message_crit = '[CRIT] {{ .ID }}
- HiPressure: {{index .Fields "HiPressureMax.max" | printf "%.1f"}}psi
- LoPressure: {{index .Fields "LoPressureMin.max" | printf "%.1f"}}psi
+ HiPressure: {{index .Fields "HiPressure.max" | printf "%.1f"}}psi
+ LoPressure: {{index .Fields "LoPressure.max" | printf "%.1f"}}psi
  Difference: {{index .Fields "PressureDiff"  | printf "%.1f"}}psi'
 
 var data = stream
@@ -23,10 +23,10 @@ var LoPressureMax = data
 var newData = data
   |min('HiPressure')
   |join(LoPressureMax)
-    .as('HiPressureMin', 'LoPressureMax')
-  |eval(lambda: abs(float("HiPressureMin.min") - float("LoPressureMax.max"))) // get abs temperature difference minmax across all chambers
+    .as('HiPressure', 'LoPressure')
+  |eval(lambda: abs(float("HiPressure.min") - float("LoPressure.max"))) // get abs temperature difference minmax across all chambers
     .as('PressureDiff')
-    .keep('HiPressureMin.min', 'LoPressureMax.max', 'PressureDiff')
+    .keep('HiPressure.min', 'LoPressure.max', 'PressureDiff')
   |alert()
     .crit(lambda: "PressureDiff" < 50.0) // abs pressure difference shouldnt be over 50
     .id('Facility Pressure Difference')

@@ -60,7 +60,7 @@ def notify_slack(issue=None):
         ]
     }
 
-    if 'details' in data.keys():
+    if data.get('details', "") != "":
         chamberMatch = re.match(r'(GC\d\d)', data['id'])
         if chamberMatch is not None:
             chamber = chamberMatch.group()
@@ -98,7 +98,7 @@ def notify_slack(issue=None):
 
 def make_issue():
     msg = "### "+data['message'] 
-    if 'details' in data:
+    if data.get('details', "") != "":
         msg += "\n"+data['details']
 
         chamberMatch = re.match(r'(GC\d\d)', data['id'])
@@ -124,7 +124,7 @@ def make_issue():
 for iss in repo.get_issues():
     if data['id'] in iss.title:
         msg = "### "+data['message'] 
-        if 'details' in data:
+        if data.get('details', "") != "":
             msg += "\n"+data['details']
         iss.create_comment(msg)
         notify_slack(issue=iss)
