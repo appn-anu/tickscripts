@@ -31,7 +31,7 @@ var historical = batch
     .as('tolerance')
     .keep('historical.mean', 'current.mean', 'value', 'tolerance')
   |alert()
-    .crit(lambda: "value" > "tolerance" OR "value" < ("tolerance" * -1.0))
+    .crit(lambda: ("value" > "tolerance" OR "value" < ("tolerance" * -1.0)) AND "value" > 50)
     .id('{{ index .Tags "host" }} Temporal PAR difference')
     .message('{{ if eq .Level "OK" }}' + message_alive + '{{ else }}' + message_difference + '{{ end }}')
     .details(deets)
