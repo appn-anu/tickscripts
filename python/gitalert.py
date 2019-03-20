@@ -78,7 +78,7 @@ def notify_slack(issue=None):
             }
             request_data['attachments'].append(attach2)
     if issue is not None:
-        request_data['attachments'][0]['title'] = data['message']
+        request_data['attachments'][0]['title'] = full_title
         request_data['attachments'][0]['title_link'] = issue.html_url
         # if this is an ok message and fixed is in the labels
         if 'ok' in data['level'].lower() and 'fixed' in [x.name.lower() for x in issue.labels]:
