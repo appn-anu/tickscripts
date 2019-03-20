@@ -1,8 +1,6 @@
 dbrp "chambers"."autogen"
 
-var message_alive = '[OK] {{ .ID }}'
-var message_difference = '[CRIT] {{ .ID }}'
-
+var message_critok = '{{ if eq .Level "OK" }}[OK] {{ .ID }}{{ else }}[CRIT] {{ .ID }}{{ end }}'
 var deets = 'past: {{index .Fields "historical.mean" | printf "%.1f"}}°C (err ±1.5°C)
  now: {{index .Fields "current.mean" | printf "%.1f"}}°C
  diff: {{index .Fields "value" | printf "%.1f"}}°C'
@@ -32,7 +30,7 @@ var historical = batch
   |alert()
     .crit(lambda: "value" > 1.5 OR "value" < -1.5)
     .id('{{ index .Tags "host" }} Temporal Temperature difference')
-    .message('{{ if eq .Level "OK" }}' + message_alive + '{{ else }}' + message_difference + '{{ end }}')
+    .message(message_critok)
     .details(deets)
     .exec('python3', '/etc/kapacitor/python/gitalert.py')
     .stateChangesOnly()
