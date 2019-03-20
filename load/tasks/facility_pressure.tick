@@ -1,7 +1,9 @@
 dbrp "chambers"."autogen"
 
 var message_alive = '[OK] {{ .ID }}'
-var message_crit = '[CRIT] {{ .ID }}
+var message_crit = '[CRIT] {{ .ID }}'
+
+var deets = '
  HiPressure: {{index .Fields "HiPressure.max" | printf "%.1f"}}psi
  LoPressure: {{index .Fields "LoPressure.max" | printf "%.1f"}}psi
  Difference: {{index .Fields "PressureDiff"  | printf "%.1f"}}psi'
@@ -31,5 +33,6 @@ var newData = data
     .crit(lambda: "PressureDiff" < 50.0) // abs pressure difference shouldnt be over 50
     .id('Facility Pressure Difference')
     .message('{{ if eq .Level "OK" }}' + message_alive + '{{ else }}' + message_crit + '{{ end }}.')
+    .details(deets)
     .exec('python3', '/etc/kapacitor/python/gitalert.py')
     .stateChangesOnly()
