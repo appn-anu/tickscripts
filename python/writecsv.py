@@ -14,5 +14,5 @@ config = json.load(open(os.path.join(mydir, 'config.json')))
 data = json.load(sys.stdin)
 
 slack_hook = config.get("slack_webhook")
-with open("/etc/data/test-{}.json".format(datetime.datetime.now().isoformat()), 'w') as f:
+with open("/data/test-{}.json".format(datetime.datetime.now().isoformat()), 'w') as f:
     json.dumps(data, f, indent=4)
