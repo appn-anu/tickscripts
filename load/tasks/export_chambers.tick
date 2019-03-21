@@ -1,0 +1,10 @@
+dbrp "chambers"."autogen"
+
+var interval = 24h
+var data = batch
+  |query('select * from chambers.autogen./.*/')
+      .period(24h)
+      .every(10m)
+  |alert()
+    .warn(lambda: TRUE)
+    .exec('python3', '/etc/kapacitor/python/writecsv.py')
