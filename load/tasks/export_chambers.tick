@@ -1,10 +1,10 @@
 dbrp "chambers"."autogen"
 
-var interval = 24h
 var data = batch
-  |query('select * from chambers.autogen./.*/')
+  |query('select * from chambers.autogen.conviron,chambers.autogen.conviron2,chambers.autogen."heliospectra-light",chambers.autogen."psi-light",chambers.autogen."lights",chambers.autogen.camera,chambers.autogen.bme280')
       .period(24h)
-      .every(10m)
+      .every(24h)
+      .align()
   |alert()
-    .warn(lambda: TRUE)
+    .info(lambda: TRUE)
     .exec('python3', '/etc/kapacitor/python/writecsv.py')

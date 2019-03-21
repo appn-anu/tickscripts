@@ -6,13 +6,17 @@ import datetime
 import yaml
 import time
 import re
-slack_hook = config.get("slack_webhook")
+
 curpath = os.path.abspath(__file__)
 mydir = os.path.dirname(curpath)
 config = json.load(open(os.path.join(mydir, 'config.json')))
 
-data = json.load(sys.stdin)
-
 slack_hook = config.get("slack_webhook")
-with open("/data/test-{}.json".format(datetime.datetime.now().isoformat()), 'w') as f:
-    json.dumps(data, f, indent=4)
+data = json.load(sys.stdin)
+for series in data['data']['series']:
+    header = ",".join(series['columns'])
+    with open("/data/{}_{}.csv".format(datetime.datetime.now().strftime("%Y-%m-%d"),series['name']), 'w') as f:
+        f.write(header+"\n")
+        for tp in series['values']:
+            f.write(",".join([str(x) for x in tp])+"\n")
+
