@@ -52,5 +52,5 @@ var dman = data
         .id('{{ index .Tags "name" }} gigavision deadman')
         .message('{{ if eq .Level "OK" }}' + message_alive + '{{ else }}' + message_dead + '{{ end }}')
         .exec('python3', '/etc/kapacitor/python/gitalert.py')
-        .details('No Data')
+        .details('No Data within error state window (08:00 to 18:00)')
         .stateChangesOnly()

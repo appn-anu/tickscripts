@@ -3,8 +3,8 @@ dbrp "chambers"."autogen"
 var message_critok = '{{ if eq .Level "OK" }}[OK] {{ .ID }}{{ else }}[CRIT] {{ .ID }}{{ end }}'
 
 var deets = '
- HiPressure: {{index .Fields "HiPressure.max" | printf "%.1f"}}psi
- LoPressure: {{index .Fields "LoPressure.max" | printf "%.1f"}}psi
+ HiPressure: {{index .Fields "HiPressure.max" }}psi
+ LoPressure: {{index .Fields "LoPressure.max" }}psi
  Difference: {{index .Fields "PressureDiff"  | printf "%.1f"}}psi'
 
 var data = stream
