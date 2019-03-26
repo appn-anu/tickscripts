@@ -15,8 +15,7 @@ slack_hook = config.get("slack_webhook")
 data = json.load(sys.stdin)
 for series in data['data']['series']:
     header = ",".join(series['columns'])
-    with open("/data/{}_{}.csv".format(datetime.datetime.now().strftime("%Y-%m-%d"),series['name']), 'w') as f:
+    with open("/data/{}_{}.csv".format((datetime.datetime.now()-datetime.timedelta(hours=24)).strftime("%Y-%m-%d"),series['name']), 'w') as f:
         f.write(header+"\n")
         for tp in series['values']:
             f.write(",".join([str(x) for x in tp])+"\n")
-

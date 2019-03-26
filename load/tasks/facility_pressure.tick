@@ -3,7 +3,7 @@ dbrp "chambers"."autogen"
 var message_critok = '{{ if eq .Level "OK" }}[OK] {{ .ID }}{{ else }}[CRIT] {{ .ID }}{{ end }}'
 
 var deets = '
- HiPressure: {{index .Fields "HiPressure.max" }}psi
+ HiPressure: {{index .Fields "HiPressure.min" }}psi
  LoPressure: {{index .Fields "LoPressure.max" }}psi
  Difference: {{index .Fields "PressureDiff"  | printf "%.1f"}}psi'
 
