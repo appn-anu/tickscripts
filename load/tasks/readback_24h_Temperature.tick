@@ -1,34 +1,51 @@
 dbrp "chambers"."autogen"
 
 var message_critok = '{{ if eq .Level "OK" }}[OK] {{ .ID }}{{ else }}[CRIT] {{ .ID }}{{ end }}'
-var deets = 'past: {{index .Fields "historical.mean" | printf "%.1f"}}°C (err ±1.5°C)
- now: {{index .Fields "current.mean" | printf "%.1f"}}°C
- diff: {{index .Fields "value" | printf "%.1f"}}°C'
+var deets = 'pastmean: {{index .Fields "hist.Temperature" | printf "%.1f"}}°C (err ±1.5°C)
+ nowmean: {{index .Fields "cur.Temperature" | printf "%.1f"}}°C
+ diff: {{index .Fields "min.value" | printf "%.1f"}}°C (err ±1.5°C)'
  
 var current = batch
-  |query('select mean(Temperature) from chambers.autogen.conviron2 limit 1')
+  |query('select Temperature from chambers.autogen.conviron2 limit 3')
   .period(30m)
   .every(10m)
   .align()
   .groupBy('host')
 
-
+// change this to take the lowest diff of the values rather than the diff of the mean.
 var historical = batch
-  |query('select mean(Temperature) from chambers.autogen.conviron2 limit 1')
+  |query('select Temperature from chambers.autogen.conviron2 limit 3')
     .period(30m)
     .every(10m)
     .offset(24h)
     .align()
     .groupBy('host')
   |shift(24h)
+
+var joined = historical
   |join(current)
     .tolerance(5m)
-    .as('historical', 'current')    
-  |eval(lambda: "current.mean" - "historical.mean")
+    .as('historical', 'current')
+  |eval(lambda: "current.Temperature" - "historical.Temperature")
     .as('value')
-    .keep('historical.mean', 'current.mean', 'value')
+    .keep('value', 'current.Temperature', 'historical.Temperature')
+
+
+var mins = joined|min('value')
+    .as('value')
+
+var hist = joined|mean('historical.Temperature')
+    .as('Temperature')
+
+var ur = joined|mean('current.Temperature')
+    .as('Temperature')
+
+var njoined = hist
+  |join(cur, mins, maxs)
+    .as('hist','cur' ,'min', 'max')
+  |log()
   |alert()
-    .crit(lambda: "value" > 1.5 OR "value" < -1.5)
+    .crit(lambda: "min.value" > 1.5 OR "min.value" < -1.5)
     .id('{{ index .Tags "host" }} Temporal Temperature difference')
     .message(message_critok)
     .details(deets)

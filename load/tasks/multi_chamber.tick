@@ -1,7 +1,7 @@
 dbrp "chambers"."autogen"
 
 var interval = 10m
-var oneday = 18h
+var oneday = 24h
 
 var message_deadok = '{{ if eq .Level "OK" }}[OK] {{ .ID }}{{ else }}[OFF] {{ .ID }}{{ end }}'
 var message_critok = '{{ if eq .Level "OK" }}[OK] {{ .ID }}{{ else }}[CRIT] {{ .ID }}{{ end }}'
@@ -50,15 +50,15 @@ var temp_spread_alert = data
     .exec('python3', '/etc/kapacitor/python/gitalert.py')
     .stateChangesOnly()
 
-var par_spread_alert = data
+ var par_spread_alert = data
   |where(lambda: "group" == 'spc')
-  |window()
+ |window()
     .align()
     .period(oneday)
     .every(interval)
     .fillPeriod()
   |spread('Par')
-    .as('Par')
+    .as('ParSpread')
   |alert()
     .crit(lambda: "ParSpread" < 5.0)
     .id('{{ index .Tags "host" }} spc par spread')
