@@ -25,11 +25,11 @@ var newData = data
   |min('HiPressure')
   |join(LoPressureMax)
     .as('HiPressure', 'LoPressure')
-  |eval(lambda: abs(float("HiPressure.min") - float("LoPressure.max"))) // get abs temperature difference minmax across all chambers
+  |eval(lambda: float("HiPressure.min") - float("LoPressure.max"))
     .as('PressureDiff')
     .keep('HiPressure.min', 'LoPressure.max', 'PressureDiff')
   |alert()
-    .crit(lambda: "PressureDiff" < 50.0) // abs pressure difference shouldnt be over 50
+    .crit(lambda: "PressureDiff" < 0.0) // abs pressure difference shouldnt be under 0
     .id('Facility Pressure Difference')
     .message(message_critok)
     .details(deets)

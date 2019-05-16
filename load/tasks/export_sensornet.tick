@@ -3,8 +3,7 @@ dbrp "sensornet"."autogen"
 var data = batch
   |query('select * from sensornet.autogen./.*/')
       .period(24h)
-      .every(24h)
-      .align()
+      .cron('0 0 * * *')
   |alert()
     .info(lambda: TRUE)
-    .exec('python3', '/etc/kapacitor/python/writecsv.py')
+    .exec('python3', '/etc/kapacitor/python/writecsv.py', 'sensornet')

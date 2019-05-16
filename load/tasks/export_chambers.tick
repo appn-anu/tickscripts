@@ -3,8 +3,7 @@ dbrp "chambers"."autogen"
 var data = batch
   |query('select * from chambers.autogen.conviron,chambers.autogen.conviron2,chambers.autogen."heliospectra-light",chambers.autogen."psi-light",chambers.autogen."lights",chambers.autogen.camera,chambers.autogen.bme280')
       .period(24h)
-      .every(24h)
-      .align()
+      .cron('0 0 * * *')
   |alert()
     .info(lambda: TRUE)
-    .exec('python3', '/etc/kapacitor/python/writecsv.py')
+    .exec('python3', '/etc/kapacitor/python/writecsv.py', 'chambers')

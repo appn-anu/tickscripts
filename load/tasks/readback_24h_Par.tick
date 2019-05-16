@@ -2,20 +2,20 @@ dbrp "chambers"."autogen"
 
 var message_critok = '{{ if eq .Level "OK" }}[OK] {{ .ID }}{{ else }}[CRIT] {{ .ID }}{{ end }}'
 
-var deets = 'pastmean: {{index .Fields "hist.Par" | printf "%.1f"}} (err ±10% {{index .Fields "max.tolerance" | printf "%.1f"}})
- nowmean: {{index .Fields "cur.Par" | printf "%.1f"}}
- diff: {{index .Fields "min.value" | printf "%.1f"}}'
+var deets = 'past: {{index .Fields "hist.Par" | printf "%.1f"}}
+ now: {{index .Fields "cur.Par" | printf "%.1f"}}
+ diff: {{index .Fields "min.value" | printf "%.1f"}}  (err = ±10% {{index .Fields "max.tolerance" | printf "%.1f"}})'
 
 var current = batch
-  |query('select Par from chambers.autogen.conviron2 limit 3')
-  .period(30m)
+  |query('select Par from chambers.autogen.conviron2 limit 6')
+  .period(1h)
   .every(10m)
   .align()
   .groupBy('host')
 
 var joined = batch
-  |query('select Par from chambers.autogen.conviron2 limit 3')
-    .period(30m)
+  |query('select Par from chambers.autogen.conviron2 limit 6')
+    .period(1h)
     .every(10m)
     .offset(24h)
     .align()
@@ -24,7 +24,7 @@ var joined = batch
   |join(current)
     .tolerance(5m)
     .as('historical', 'current')
-  |eval(lambda: "current.Par" - "historical.Par")
+  |eval(lambda: abs("current.Par" - "historical.Par"))
     .as('value')
     .keep('historical.Par', 'current.Par', 'value')
   |eval(lambda: "historical.Par" * 0.1)
@@ -44,7 +44,7 @@ var njoined = hist
   |join(cur, mins, maxs)
     .as('hist','cur' ,'min', 'max')
   |alert()
-    .crit(lambda: ("min.value" > "max.tolerance" OR "min.value" < ("max.tolerance" * -1.0)) AND "max.tolerance" > 15)
+    .crit(lambda: ("min.value" > "max.tolerance") AND "max.tolerance" > 15)
     .id('{{ index .Tags "host" }} Temporal PAR difference')
     .message(message_critok)
     .details(deets)

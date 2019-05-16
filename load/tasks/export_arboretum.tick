@@ -1,0 +1,9 @@
+dbrp "arboretum"."autogen"
+
+var data = batch
+  |query('select * from arboretum.autogen./.*/')
+      .period(24h)
+      .cron('0 0 * * *')
+  |alert()
+    .info(lambda: TRUE)
+    .exec('python3', '/etc/kapacitor/python/writecsv.py', 'arboretum')
