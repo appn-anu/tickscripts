@@ -27,7 +27,7 @@ var joined = batch
   |eval(lambda: abs("current.Par" - "historical.Par"))
     .as('value')
     .keep('historical.Par', 'current.Par', 'value')
-  |eval(lambda: "historical.Par" * 0.1)
+  |eval(lambda: "historical.Par" * 0.15)
     .as('tolerance')
     .keep('value', 'tolerance', 'historical.Par', 'current.Par')
 

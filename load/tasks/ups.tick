@@ -1,0 +1,40 @@
+dbrp "chambers"."autogen"
+
+var interval = 2m
+
+
+var message_deadok = '{{ if eq .Level "OK" }}[OK] {{ .ID }}{{ else }}[OFF] {{ .ID }}{{ end }}'
+var deets = 'host: {{ index .Tags "host" }}
+TaskName: {{ index .TaskName }}
+input.voltage: {{ index .Fields "input.voltage" }}V (< 200V)
+battery.charge: {{ index .Fields "battery.charge" }}%
+battery.runtime: {{ index .Fields "battery.runtime" }}
+ups.load: {{ index .Fields "ups.load" }}%
+'
+
+var data = stream
+    |from()
+        .database('chambers')
+        .retentionPolicy('autogen')
+        .measurement('httpjson_ups')
+        .where(lambda: "host" == 'elroy')
+        .groupBy('host')
+    |eval(lambda: duration("battery.runtime", 1s))
+        .as('battery.runtime')
+        .keep('battery.runtime', 'battery.charge', 'input.voltage', 'ups.load')
+
+data|alert()
+    .id('{{ index .Tags "host" }} ups voltage')
+    .crit(lambda: "input.voltage" < 200 )   
+    .message(message_deadok)
+    .details(deets)
+    .exec('python3', '/etc/kapacitor/python/gitalert.py')
+    .stateChangesOnly()
+
+// trigger deadman if point throughput is less than 1 point per 2 minutes
+data|deadman(1.0, interval)
+    .id('{{ index .Tags "host" }} ups voltage deadman')
+    .message(message_deadok)
+    .details(deets)
+    .exec('python3', '/etc/kapacitor/python/gitalert.py')
+    .stateChangesOnly()

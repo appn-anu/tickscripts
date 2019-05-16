@@ -15,6 +15,6 @@ var data = stream
     |deadman(0.0, interval)
         .id('{{ index .Tags "camera_name" }} spc camera deadman')
         .message(message_deadok)
-        .exec('python3', '/etc/kapacitor/python/gitalert.py')
         .details(deets)
+        .exec('python3', '/etc/kapacitor/python/gitalert.py')
         .stateChangesOnly()
