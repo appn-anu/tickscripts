@@ -121,13 +121,18 @@ def make_issue():
 
     return repo.create_issue(full_title, **kwargs)
 
+
+no_notify_labels = {'maintenance', 'inactive'}
+
 for iss in repo.get_issues():
     if data['id'] in iss.title:
         msg = "### "+data['message'] 
         if data.get('details', "") != "":
             msg += "\n"+data['details']
         iss.create_comment(msg)
-        notify_slack(issue=iss)
+        
+        if no_notify_labels.isdisjoint(set(x.name.lower() for x in issue.labels)):
+            notify_slack(issue=iss)
         sys.exit(0)
 
 if "ok" in data['level'].lower():
