@@ -130,8 +130,8 @@ for iss in repo.get_issues():
         if data.get('details', "") != "":
             msg += "\n"+data['details']
         iss.create_comment(msg)
-        
-        if no_notify_labels.isdisjoint(set(x.name.lower() for x in issue.labels)):
+        issue_labels = set(x.name.lower() for x in issue.labels)
+        if no_notify_labels.isdisjoint(issue_labels) or "fixed" in issue_labels:
             notify_slack(issue=iss)
         sys.exit(0)
 
