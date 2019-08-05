@@ -124,15 +124,15 @@ def make_issue():
 
 no_notify_labels = {'maintenance', 'inactive'}
 
-for iss in repo.get_issues():
-    if data['id'] in iss.title:
+for issue in repo.get_issues():
+    if data['id'] in issue.title:
         msg = "### "+data['message'] 
         if data.get('details', "") != "":
             msg += "\n"+data['details']
-        iss.create_comment(msg)
-        issue_labels = set(x.name.lower() for x in issue.labels)
+        issue.create_comment(msg)
+        issue_labels = set(map(lambda x: x.lower(), issue.labels))
         if no_notify_labels.isdisjoint(issue_labels) or "fixed" in issue_labels:
-            notify_slack(issue=iss)
+            notify_slack(issue=issue)
         sys.exit(0)
 
 if "ok" in data['level'].lower():

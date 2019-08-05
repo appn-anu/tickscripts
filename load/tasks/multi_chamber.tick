@@ -76,7 +76,7 @@ var excess_light_alert = data
     .as('MinPar')
   |alert()
     .crit(lambda: "MinPar" > 5.0)
-    .id('{{ index .Tags "host' }} min 24h PAR')
+    .id('{{ index .Tags "host" }} min 24h PAR')
     .details('min 24h PAR: {{ index .Fields "MinPar" | printf "%.2f" }}')
 
 var dman = data
