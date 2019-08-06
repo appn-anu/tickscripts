@@ -33,6 +33,7 @@ var temp_diff_window = data
     .exec('python3', '/etc/kapacitor/python/gitalert.py')
     .stateChangesOnly()
 
+
 var temp_spread_alert = data
   |where(lambda: "group" == 'spc')
   |window()
@@ -49,35 +50,6 @@ var temp_spread_alert = data
     .details('temp spread: {{ index .Fields "TemperatureSpread" | printf "%.2f" }}')
     .exec('python3', '/etc/kapacitor/python/gitalert.py')
     .stateChangesOnly()
-
- var par_spread_alert = data
-  |where(lambda: "group" == 'spc')
-  |window()
-    .align()
-    .period(oneday)
-    .every(interval)
-    .fillPeriod()
-  |spread('Par')
-    .as('ParSpread')
-  |alert()
-    .crit(lambda: "ParSpread" < 5.0)
-    .id('{{ index .Tags "host" }} spc 24h PAR spread')
-    .message(message_critok)
-    .details('PAR spread: {{ index .Fields "ParSpread" | printf "%.2f" }}')
-    .exec('python3', '/etc/kapacitor/python/gitalert.py')
-    .stateChangesOnly()
-
-var excess_light_alert = data
-  |window()
-    .align()
-    .period(oneday)
-    .every(interval)
-  |min('Par')
-    .as('MinPar')
-  |alert()
-    .crit(lambda: "MinPar" > 5.0)
-    .id('{{ index .Tags "host" }} min 24h PAR')
-    .details('min 24h PAR: {{ index .Fields "MinPar" | printf "%.2f" }}')
 
 var dman = data
   |deadman(0.0, 30m)
