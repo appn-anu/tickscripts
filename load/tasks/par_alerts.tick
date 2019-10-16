@@ -22,7 +22,6 @@ var excess_light_alert = data
     .fillPeriod()
   |min('Par')
     .as('MinPar')
-  |log()
   |alert()
     .crit(lambda: "MinPar" > 5.0)
     .id('{{ index .Tags "host" }} min 24h PAR')

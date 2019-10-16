@@ -34,4 +34,5 @@ var newData = data
     .message(message_critok)
     .details(deets)
     .exec('python3', '/etc/kapacitor/python/gitalert.py')
+    .topic('pgf')
     .stateChangesOnly()

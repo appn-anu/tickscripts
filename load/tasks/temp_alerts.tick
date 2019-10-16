@@ -30,6 +30,7 @@ var temp_diff_window = data
     .id('{{ index .Tags "host" }} spc chamber temperature diff')
     .message(message_critok)
     .details('temp diff: {{ index .Fields "TemperatureDiff" | printf "%.2f" }}')
+    .topic('chambers')
     .exec('python3', '/etc/kapacitor/python/gitalert.py')
     .stateChangesOnly()
 
@@ -48,6 +49,7 @@ var temp_spread_alert = data
     .id('{{ index .Tags "host" }} spc chamber temperature spread')
     .message(message_critok)
     .details('temp spread: {{ index .Fields "TemperatureSpread" | printf "%.2f" }}')
+    .topic('chambers')
     .exec('python3', '/etc/kapacitor/python/gitalert.py')
     .stateChangesOnly()
 
@@ -57,4 +59,5 @@ var dman = data
     .message(message_deadok)
     .exec('python3', '/etc/kapacitor/python/gitalert.py')
     .details('No Data')
+    .topic('chambers')
     .stateChangesOnly()

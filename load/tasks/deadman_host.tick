@@ -13,8 +13,10 @@ var data = stream
         .measurement('system')
         .groupBy(*)
     |deadman(0.0, interval)
+        
         .id('{{ index .Tags "host" }} deadman')
         .message(message_deadok)
         .details(deets)
         .exec('python3', '/etc/kapacitor/python/gitalert.py')
         .stateChangesOnly()
+

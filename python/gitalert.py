@@ -61,7 +61,7 @@ def notify_slack(issue=None):
     }
 
     if data.get('details', "") != "":
-        chamberMatch = re.match(r'(GC\d\d)', data['id'])
+        chamberMatch = re.match(r'.*(GC\d\d)', data['id'])
         if chamberMatch is not None:
             chamber = chamberMatch.group()
             link = "http://grafana.traitcapture.org/d/nonspc/selected-chamber?var-host={host}&orgId=1".format(host=chamber)
@@ -97,17 +97,16 @@ def notify_slack(issue=None):
     )
 
 def make_issue():
-    msg = "### "+data['message'] 
+    msg = "### {data_id} \n### {data_message}".format(data_id=data['id'], data_message=data['message']) 
     if data.get('details', "") != "":
         msg += "\n"+data['details']
-
-        chamberMatch = re.match(r'(GC\d\d)', data['id'])
+        # no space at the end of regex, we still want to direct user to grafana if its a camera
+        chamberMatch = re.match(r'.*(GC\d\d)', data['id'])
         if chamberMatch is not None:
-            chamber = chamberMatch.group()
+            chamber = chamberMatch.group(1)
             link = "http://grafana.traitcapture.org/d/nonspc/selected-chamber?var-host={}&orgId=1".format(chamber)
-            if 'camera' in  data['id'] or 'spc' in data['id']:
+            if 'camera' in  data['id'] or 'spc' in data['id']: # if there is camera, then its an spc
                 link= "http://grafana.traitcapture.org/d/spc/selected-chamber-spc?var-host={}&orgId=1".format(chamber)
-            
             msg += "\n" + "[Dashboard Link]({})".format(link)
     kwargs = {
         "body": msg,
@@ -124,16 +123,27 @@ def make_issue():
 
 no_notify_labels = {'maintenance', 'inactive'}
 
+def comment_on_issue(issue, data):
+    msg = "### {data_id} \n### {data_message}".format(data_id=data['id'], data_message=data['message']) 
+    if data.get('details', "") != "":
+        msg += "\n"+data['details']
+    issue.create_comment(msg)
+    issue_labels = set(map(lambda x: x.name.lower(), issue.labels))
+    if no_notify_labels.isdisjoint(issue_labels) or "fixed" in issue_labels:
+        notify_slack(issue=issue)
+    sys.exit(0)
+
 for issue in repo.get_issues():
+    # the space in the regex required to not catch the cameras
+    chamberMatch = re.match(r'.*(GC\d\d) ', data['id'])
+    if chamberMatch is not None:
+        chamber = chamberMatch.group(1)
+        if chamber in issue.title:
+            comment_on_issue(issue, data)
+
+
     if data['id'] in issue.title:
-        msg = "### "+data['message'] 
-        if data.get('details', "") != "":
-            msg += "\n"+data['details']
-        issue.create_comment(msg)
-        issue_labels = set(map(lambda x: x.name.lower(), issue.labels))
-        if no_notify_labels.isdisjoint(issue_labels) or "fixed" in issue_labels:
-            notify_slack(issue=issue)
-        sys.exit(0)
+        comment_on_issue(issue, data)
 
 if "ok" in data['level'].lower():
     notify_slack()
