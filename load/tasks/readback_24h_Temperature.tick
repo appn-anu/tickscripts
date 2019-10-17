@@ -48,6 +48,5 @@ var njoined = hist
     .id('{{ index .Tags "host" }} Temporal Temperature difference')
     .message(message_critok)
     .details(deets)
-    .topic('chambers')
     .exec('python3', '/etc/kapacitor/python/gitalert.py')
     .stateChangesOnly()

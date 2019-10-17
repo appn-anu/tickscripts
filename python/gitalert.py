@@ -7,132 +7,206 @@ import yaml
 import time
 import re
 from github import Github, GithubObject
+import slack
 curpath = os.path.abspath(__file__)
 mydir = os.path.dirname(curpath)
 config = json.load(open(os.path.join(mydir, 'config.json')))
 g = Github(config['token'])
-
 user = g.get_organization(config['org'])
 repo = user.get_repo(config['repo'])
+
 data = json.load(sys.stdin)
 
 slack_hook = config.get("slack_webhook")
 
+slack_client = slack.WebClient(token=config.get("slack_api_token"))
+
 full_title = "[{}] {}".format(data['level'], data['id'])
 
-day_of_week = datetime.datetime.today().weekday()
 r = requests.get("https://raw.githubusercontent.com/appf-anu/tickets/master/schedule.yaml")
 
-schedule_data = yaml.load(r.content)
+no_notify_labels = {'maintenance', 'inactive'}
 
-always = None
+schedule_data = yaml.safe_load(r.content)
 
-if type(schedule_data['notify_always']) is list:
-    always = ",".join(schedule_data['notify_always'])
-elif type(schedule_data['notify_always']) is str:
-    always = schedule_data['notify_always'].strip()
+def get_assignees(alert_id):
+    def _get_userlist(userlist):
+        overrides = schedule_data.get("overrides", list())
+        schedules = schedule_data.get("schedules", dict())
+        escalation_chains = schedule_data.get("escalation_chains", dict())
+        device_services = schedule_data.get("device_services", dict())
+        default_services = schedule_data.get("default_services", list())
+        days_of_week = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+        day_of_week_i = datetime.datetime.today().weekday()
+        day_of_week_str = days_of_week[day_of_week_i]
+        
+        rusers = set()
+        for user in userlist:
+            if user in escalation_chains.keys():
+                rusers = rusers | get_userlist(escalation_chains[user])
+                continue
 
-all_assignees = schedule_data['notify_on_days'][day_of_week]
+            if user[-1] == "!":
+                user_name = user[:-1]
+                if user_name in escalation_chains.keys():
+                    forced_users = [x+"!" for x in escalation_chains[user_name]]
+                    rusers = rusers | (get_userlist(forced_users))
+                else:
+                    rusers.add(user_name)
 
-if always is not None and always not in ["", ",", " "]:
-    all_assignees = ",".join([always, schedule_data['notify_on_days'][day_of_week]])
+            if user not in schedules.keys():
+                rusers.add(user)
+                break
+            if day_of_week_str in schedules.get(user, "") and user not in overrides:
+                rusers.add(user)
+                break
+        return rusers
 
-def notify_slack(issue=None):
-    color = "good"
+    overrides = schedule_data.get("overrides", list())
+    schedules = schedule_data.get("schedules", dict())
+    escalation_chains = schedule_data.get("escalation_chains", dict())
+    device_services = schedule_data.get("device_services", dict())
+    default_services = schedule_data.get("default_services", list())
+    days_of_week = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+    day_of_week_i = datetime.datetime.today().weekday()
+    day_of_week_str = days_of_week[day_of_week_i]
+
+    assignees = set()
+    for device, users in device_services.items():
+        if device.lower() in alert_id.lower():
+            assignees = assignees| _get_userlist(users)
+    return assignees
+
+def notify_slack(data, issue=None):
+    data_id = data['id']
+    data_details = data.get('details', None)
+    data_message = data['message']
+
+    slack_users = dict()
+    resp = slack_client.users_list()
+    if resp['ok']:
+        slack_users = {u['name']:u['id'] for u in resp.data['members']}
+
+    color = "#36a64f"
     if "crit" in data['level'].lower():
-        color = "danger"
+        color = "#a30200"
     if "off" in data['level'].lower():
-        color = "danger"
-    if "warning" in data['level'].lower():
-        color = "warning"
+        color = "#a30200"
+    if "warn" in data['level'].lower():
+        color = "#a36500"
 
-    request_data = {
-        "mrkdown_in": ["text"],
-        "attachments": [
-            {
-                "color": color,
-                "fallback": data['message'],
-                "text": full_title+"\n\n_issue already closed_",
-                "footer": "Kapacitor",
-                "footer_icon": "https://traitcapture.org/static/img/mascot-kapacitor-transparent_png-16x16.png",
-                "ts": time.time()
+    blocks = list()
+    blocks.append({
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": full_title+"\n\n"+data_details,
             }
-        ]
-    }
+        })
 
-    if data.get('details', "") != "":
+    blocks.append({"type": "divider"})
+    blocks.append({"type": "actions", "elements": []})
+
+    if data_details:
         chamberMatch = re.match(r'.*(GC\d\d)', data['id'])
         if chamberMatch is not None:
             chamber = chamberMatch.group()
             link = "http://grafana.traitcapture.org/d/nonspc/selected-chamber?var-host={host}&orgId=1".format(host=chamber)
             if 'camera' in  data['id'] or 'spc' in data['id']:
                 link= "http://grafana.traitcapture.org/d/spc/selected-chamber-spc?var-host={host}&orgId=1".format(host=chamber)
-            attach2 = {
-                "color": color,
-                "fallback": data['details'],
-                "title": "{host} Dashboard Link".format(host=chamber),
-                "title_link": link,
-                "footer": "Grafana",
-                "text": data['details'], 
-                "footer_icon": "https://traitcapture.org/static/img/mascot-grafana-transparent_png-16x16.png"
-            }
-            request_data['attachments'].append(attach2)
+            blocks[-1]['elements'].append({
+                "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": "Grafana Dashboard"
+                    },
+                    "url": link
+                })
+
     if issue is not None:
-        request_data['attachments'][0]['title'] = full_title
-        request_data['attachments'][0]['title_link'] = issue.html_url
-        # if this is an ok message and fixed is in the labels
+        section_text = "Ticket link"
         if 'ok' in data['level'].lower() and 'fixed' in [x.name.lower() for x in issue.labels]:
             # close this issue
             issue.edit(state='closed')
-            request_data['attachments'][0]['text'] = full_title+"\n\n_issue closed by appf-bot_"
-            if len(request_data['attachments']) > 1:
-                request_data['attachments'].pop()
-        else:
-            del request_data['attachments'][0]['text']
+            section_text = "Git Ticket Link (closed)"
 
-    r = requests.post(
-        slack_hook,
-        data = json.dumps(request_data),
-        headers = {'Content-Type': 'application/json'}
-    )
+        blocks[-1]['elements'].append({
+                "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": section_text
+                    },
+                    "url": issue.html_url
+                })
+    
+        current_assignees = set([x.login for x in issue.assignees])
+        userids = [slack_users[assignee_name] for assignee_name in current_assignees]
+        resp = slack_client.conversations_open(users=userids)
+        if resp.data['ok'] == True:
+            chanid = resp.data['channel']['id']
+            slack_client.chat_postMessage(channel=chanid, 
+                attachments=[{"color": color,
+                              "blocks": blocks}])
+            # slack_client.chat_postMessage(channel=chanid, blocks=blocks)
+    # attachments[0]['blocks'] = blocks
+    # slack_client.chat_postMessage(channel='#alarms', attachments=attachments)
+    # slack_client.chat_postMessage(channel='#alarms', blocks=blocks)
+    # slack_client.chat_postMessage(channel="#alarms", 
+    #             attachments=[{"color": color,
+    #                           "blocks": blocks}])
 
-def make_issue():
-    msg = "### {data_id} \n### {data_message}".format(data_id=data['id'], data_message=data['message']) 
-    if data.get('details', "") != "":
-        msg += "\n"+data['details']
+def make_issue(data):
+    data_id = data['id']
+    data_message = data['message']
+    data_details = data.get('details', None)
+    data_level = data['level']
+
+    msg = "### {data_id} \n### {data_message}".format(data_id=data_id, data_message=data_message) 
+    if data_details:
+        msg += "\n"+data_details
         # no space at the end of regex, we still want to direct user to grafana if its a camera
-        chamberMatch = re.match(r'.*(GC\d\d)', data['id'])
+        chamberMatch = re.match(r'.*(GC\d\d)', data_id)
         if chamberMatch is not None:
             chamber = chamberMatch.group(1)
             link = "http://grafana.traitcapture.org/d/nonspc/selected-chamber?var-host={}&orgId=1".format(chamber)
-            if 'camera' in  data['id'] or 'spc' in data['id']: # if there is camera, then its an spc
+            if 'camera' in  data_id or 'spc' in data_id: # if there is camera, then its an spc
                 link= "http://grafana.traitcapture.org/d/spc/selected-chamber-spc?var-host={}&orgId=1".format(chamber)
             msg += "\n" + "[Dashboard Link]({})".format(link)
     kwargs = {
         "body": msg,
         "labels": [data['level']]
     }
-    
-    if "," in all_assignees:
-        kwargs["assignees"] = [x.strip() for x in all_assignees.split(',')]
-    else:
-        kwargs["assignee"] = all_assignees.strip()
+    assignees = get_assignees(data_id)
+
+    if len(assignees) == 1:
+        kwargs['assignee'] = assignees.pop()
+    if len(assignees) > 1:
+        kwargs['assignees'] = ",".join(assignees)
 
     return repo.create_issue(full_title, **kwargs)
 
 
-no_notify_labels = {'maintenance', 'inactive'}
-
 def comment_on_issue(issue, data):
-    msg = "### {data_id} \n### {data_message}".format(data_id=data['id'], data_message=data['message']) 
-    if data.get('details', "") != "":
-        msg += "\n"+data['details']
+    data_id = data['id']
+    data_message = data['message']
+    data_details = data.get('details', None)
+    data_level = data['level']
+
+    msg = "### {data_id} \n### {data_message}".format(data_id=data_id, data_message=data['message']) 
+    if data_details:
+        msg += "\n"+data_details
     issue.create_comment(msg)
+    # update assignees.
+    
+    for assignee in get_assignees(data_id):
+        issue.add_to_assignees(assignee)
+
     issue_labels = set(map(lambda x: x.name.lower(), issue.labels))
     if no_notify_labels.isdisjoint(issue_labels) or "fixed" in issue_labels:
-        notify_slack(issue=issue)
+        notify_slack(data, issue=issue)
     sys.exit(0)
 
+# main
 for issue in repo.get_issues():
     # the space in the regex required to not catch the cameras
     chamberMatch = re.match(r'.*(GC\d\d) ', data['id'])
@@ -141,12 +215,11 @@ for issue in repo.get_issues():
         if chamber in issue.title:
             comment_on_issue(issue, data)
 
-
     if data['id'] in issue.title:
         comment_on_issue(issue, data)
 
 if "ok" in data['level'].lower():
     notify_slack()
     sys.exit(0)
-iss = make_issue()
+iss = make_issue(data)
 notify_slack(issue=iss)
