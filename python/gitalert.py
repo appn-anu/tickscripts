@@ -138,22 +138,19 @@ def notify_slack(data, issue=None):
                     },
                     "url": issue.html_url
                 })
-    
+        # get the current assignees for the issue
         current_assignees = set([x.login for x in issue.assignees])
-        userids = [slack_users[assignee_name] for assignee_name in current_assignees]
+        # get their slack ids if they have one in the file:
+        userids = [slack_users.get(assignee_name) for assignee_name in current_assignees if slack_users.get(assignee_name)]
         resp = slack_client.conversations_open(users=userids)
         if resp.data['ok'] == True:
             chanid = resp.data['channel']['id']
             slack_client.chat_postMessage(channel=chanid, 
                 attachments=[{"color": color,
                               "blocks": blocks}])
-            # slack_client.chat_postMessage(channel=chanid, blocks=blocks)
-    # attachments[0]['blocks'] = blocks
-    # slack_client.chat_postMessage(channel='#alarms', attachments=attachments)
-    # slack_client.chat_postMessage(channel='#alarms', blocks=blocks)
-    # slack_client.chat_postMessage(channel="#alarms", 
-    #             attachments=[{"color": color,
-    #                           "blocks": blocks}])
+    slack_client.chat_postMessage(channel="#alarms", 
+                attachments=[{"color": color,
+                              "blocks": blocks}])
 
 def make_issue(data):
     data_id = data['id']
