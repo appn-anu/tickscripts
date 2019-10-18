@@ -199,7 +199,7 @@ class TCPAlertHandler(socketserver.BaseRequestHandler):
                 "body": msg,
                 "labels": [self.data['level']]
             }
-            assignees = get_assignees()
+            assignees = self.get_assignees()
 
             if len(assignees) == 1:
                 kwargs['assignee'] = assignees.pop()
