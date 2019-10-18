@@ -183,7 +183,8 @@ class TCPAlertHandler(socketserver.BaseRequestHandler):
         else:
             print("Couldn't find existing issue, creating a new one...")
             data_details = self.data.get('details', None)
-            msg = "### {data_id} \n### {data_message}".format(data_id=data['id'], data_message=data['message']) 
+            msg = "### {data_id} \n### {data_message}".format(data_id=self.data['id'], 
+                                                              data_message=self.data['message']) 
             if data_details:
                 msg += "\n"+data_details
                 # no space at the end of regex, we still want to direct user to grafana if its a camera
@@ -228,7 +229,15 @@ class TCPAlertHandler(socketserver.BaseRequestHandler):
     def handle(self):
         self.issue = None
         self.data = None
-        rawdata = self.request.recv(1024).strip()
+        # do recv all data
+        buf_size = 2**12
+        rawdata = ""
+        while True:
+            part = self.request.recv(buf_size)
+            rawdata += part.decode('utf-8')
+            if len(part) < buf_size:
+                break
+
         try:
             self.data = json.loads(rawdata)
         except Exception as e:

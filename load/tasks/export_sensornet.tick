@@ -4,6 +4,7 @@ var data = batch
   |query('select * from sensornet.autogen./.*/')
       .period(24h)
       .cron('0 0 * * *')
+      //.cron('* * * * *')
   |alert()
     .info(lambda: TRUE)
     .tcp('sensornet-csv-service:9999')
