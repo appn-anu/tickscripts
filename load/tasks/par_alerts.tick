@@ -27,7 +27,7 @@ var excess_light_alert = data
     .id('{{ index .Tags "host" }} min 24h PAR')
     .message(message_critok)
     .details('min 24h PAR: {{ index .Fields "MinPar" }}')   
-    .exec('python3', '/etc/kapacitor/python/gitalert.py')
+    .tcp('alert-service:9999')
     .stateChangesOnly()
 
 var par_spread_alert = data
@@ -44,5 +44,5 @@ var par_spread_alert = data
     .id('{{ index .Tags "host" }} spc 24h PAR spread')
     .message(message_critok)
     .details('PAR spread: {{ index .Fields "ParSpread" }}')
-    .exec('python3', '/etc/kapacitor/python/gitalert.py')
+    .tcp('alert-service:9999')
     .stateChangesOnly()

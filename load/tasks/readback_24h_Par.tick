@@ -48,7 +48,7 @@ var njoined = hist
     .id('{{ index .Tags "host" }} Temporal PAR difference')
     .message(message_critok)
     .details(deets)
-    .exec('python3', '/etc/kapacitor/python/gitalert.py')
+    .tcp('alert-service:9999')
     .stateChangesOnly()
     
     

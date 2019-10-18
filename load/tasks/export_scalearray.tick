@@ -6,4 +6,4 @@ var data = batch
       .cron('0 0 * * *')
   |alert()
     .info(lambda: TRUE)
-    .exec('python3', '/etc/kapacitor/python/writecsv.py', 'scalearray')
+    .tcp('scalearray-csv-service:9999')

@@ -16,5 +16,5 @@ var data = stream
         .id('{{ index .Tags "host" }} deadman')
         .message(message_deadok)
         .details(deets)
-        .exec('python3', '/etc/kapacitor/python/gitalert.py')
+        .tcp('alert-service:9999')
         .stateChangesOnly()

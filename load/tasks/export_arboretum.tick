@@ -6,4 +6,5 @@ var data = batch
       .cron('0 0 * * *')
   |alert()
     .info(lambda: TRUE)
-    .exec('python3', '/etc/kapacitor/python/writecsv.py', 'arboretum')
+    .tcp('arboretum-csv-service:9999')
+    
