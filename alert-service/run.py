@@ -159,9 +159,9 @@ class TCPAlertHandler(socketserver.BaseRequestHandler):
                     text=self.full_title,
                     attachments=[{"color": color,
                                   "blocks": blocks}])
-        # slack_client.chat_postMessage(channel="#alarms", 
-        #             attachments=[{"color": color,
-        #                           "blocks": blocks}])
+        slack_client.chat_postMessage(channel="#alarms", 
+                    attachments=[{"color": color,
+                                  "blocks": blocks}])
 
     def get_issue(self):
         # main
