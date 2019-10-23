@@ -1,6 +1,6 @@
 {
   "message": "test alert ignore",
-  "level": "TEST",
+  "level": "OK",
   "id": "GC99 test alert spc",
   "details": "this will contain some formatted values.\n "
 }
