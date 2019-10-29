@@ -5,6 +5,7 @@ RUN apk add --no-cache \
     python3 \
     py3-pip \
     py3-yaml \
+    py3-dateutil \
  && pip3 install requests PyGithub slackclient \
  && rm -rf /var/cache/apk/*
 ENV PYTHONUNBUFFERED=1

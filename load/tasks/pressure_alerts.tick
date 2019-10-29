@@ -1,0 +1,22 @@
+dbrp "chambers"."autogen"
+
+var message_generic = '{{ if eq .Level "OK" }}[OK] {{ .ID }}{{ else if .Level "WARN" }}[WARN] {{ .ID }}{{ else }}[CRIT] {{ .ID }}{{ end }}'
+
+var data = stream
+  |from()
+    .retentionPolicy('autogen')
+    .database('chambers')
+    .measurement('conviron2')
+    .groupBy('host')
+
+var pressure_diff_alert = data
+  |eval(lambda: "HiPressure" - "LoPressure")
+    .as('PressureDiff')
+  |alert()
+    .id('{{ index .Tags "host" }} spc chamber temperature spread')
+    .warn(lambda: "PressureDiff" < 100.0)
+    .crit(lambda: "PressureDiff" < 50.0)
+    .message(message_generic)
+    .details('pressure diff: {{ index .Fields "PressureDiff" | printf "%.2f" }}')
+    .tcp('alert-service:9999')
+    .stateChangesOnly()

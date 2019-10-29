@@ -35,7 +35,7 @@ var data = stream
 //        .crit(lambda: "total_images_max" <= 1.0)
 //        .id('{{ index .Tags "name" }} gigavision num images difference')
 //        .message('{{ if eq .Level "OK" }}' + message_total_ok + '{{ else }}' + message_total + '{{ end }}')
-//        .exec('python3', '/etc/kapacitor/python/gitalert.py')
+//        .tcp('alert-service:9999')
 //        .stateChangesOnly()
 
 var timing = data
