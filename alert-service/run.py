@@ -2,6 +2,7 @@
 from __future__ import print_function
 
 import os
+import time
 import json
 import requests
 import datetime
@@ -166,7 +167,6 @@ def get_all_people(people_data):
 
         p.schedule = yaml_person.get("schedule", days_of_week.copy())
         people[p.name] = p
-
     return people
 
 
@@ -175,63 +175,17 @@ def get_escalation_chains_for_device(device_id, schedule_data, people):
     default_chain = schedule_data.get("default_chain")
     device_services = schedule_data.get('device_services', dict())
     chains = []
-    for device, chain in device_services.items():
-        if device.lower() in device_id.lower():
+    for device_service_name, chain in device_services.items():
+        if device_service_name.lower() in device_id.lower():
             chains.append(EscalationChain(
-                people, chain, escalation_chains, name=device))
+                people, chain, escalation_chains, name=device_service_name))
     if not len(chains):
         chains.append(EscalationChain(
-            people, default_chain, escalation_chains, name="DEFAULT-{}".format(device)))
+            people, default_chain, escalation_chains, name="DEFAULT-{}".format(device_id)))
     return chains
 
 
 class TCPAlertHandler(socketserver.BaseRequestHandler):
-
-    def get_assignees(self):
-        r = requests.get(os.getenv("SCHEDULE_YAML_URL"))
-        schedule_data = yaml.safe_load(r.content)
-
-        def _get_userlist(userlist):
-            overrides = schedule_data.get("overrides", list())
-            schedules = schedule_data.get("schedules", dict())
-            escalation_chains = schedule_data.get("escalation_chains", dict())
-            days_of_week = ["monday", "tuesday", "wednesday",
-                            "thursday", "friday", "saturday", "sunday"]
-            day_of_week_i = datetime.datetime.today().weekday()
-            day_of_week_str = days_of_week[day_of_week_i]
-
-            rusers = set()
-            for user in userlist:
-                if user in escalation_chains.keys():
-                    rusers = rusers | _get_userlist(escalation_chains[user])
-                    continue
-
-                if user[-1] == "!":
-                    user_name = user[:-1]
-                    if user_name in escalation_chains.keys():
-                        forced_users = [
-                            x + "!" for x in escalation_chains[user_name]]
-                        rusers = rusers | (_get_userlist(forced_users))
-                    else:
-                        rusers.add(user_name)
-
-                if user not in schedules.keys():
-                    rusers.add(user)
-                    break
-                if day_of_week_str in schedules.get(user, "") and user not in overrides:
-                    rusers.add(user)
-                    break
-            return rusers
-
-        device_services = schedule_data.get("device_services", dict())
-        assignees = set()
-        for device, users in device_services.items():
-            if device.lower() in self.data['id'].lower():
-                assignees = assignees | _get_userlist(users)
-
-        self.slackmap = schedule_data.get("slackmap", dict())
-        self.assignees = assignees.copy()
-        return assignees
 
     def notify_slack(self):
         data_id = self.data['id']
@@ -279,7 +233,6 @@ class TCPAlertHandler(socketserver.BaseRequestHandler):
 
         notify_ids = set()
         if self.issue:
-
             print("Adding link to ticket to slack alert")
             section_text = "Ticket link ({})".format(self.issue.state)
 
@@ -297,18 +250,30 @@ class TCPAlertHandler(socketserver.BaseRequestHandler):
 
             for name, person in self.people.items():
                 if person.git_login in current_assignees:
-                    notify_ids.add(person.slack_id)
-                    slack_names.add(person.name)
+                    if person.slack_id is not None:
+                        notify_ids.add(person.slack_id)
+                        slack_names.add(person.name)
                     git_names.add(person.name)
+        else:
+            # add some context to let people know that there is no existing git issue
+            blocks.append({
+                "type": "context",
+                "elements": [
+                    {
+                        "type": "mrkdwn",
+                        "text": "No existing git issue"
+                    }
+                ]
+            })
 
         # get their slack ids if they have one in the file:
         for chain in self.escalation_chains:
             print("Alerting chain {} via slack for these users: {}".format(chain.name,
                                                                            [x.name for x in chain.responsible_people]))
-
             for person in chain.responsible_people:
-                notify_ids.add(person.slack_id)
-                slack_names.add(person.name)
+                if person.slack_id is not None:
+                    notify_ids.add(person.slack_id)
+                    slack_names.add(person.name)
         slack_names = [x.title() for x in slack_names]
         git_names = [x.title() for x in git_names]
 
@@ -326,18 +291,30 @@ class TCPAlertHandler(socketserver.BaseRequestHandler):
             ]
         })
 
+        if len(notify_ids) < 1:
+            print("Error, no-one to notify")
+            return
+        notify_ids = [x for x in notify_ids if x is not None]
         resp = slack_client.conversations_open(users=list(notify_ids))
-        if resp.data['ok']:
-            chanid = resp.data['channel']['id']
-            slack_client.chat_postMessage(channel=chanid,
-                                          text=self.full_title,
-                                          attachments=[{"color": color,
-                                                        "blocks": blocks}])
+        try:
+            if resp.data['ok']:
+                chanid = resp.data['channel']['id']
+                slack_client.chat_postMessage(channel=chanid,
+                                              text=self.full_title,
+                                              attachments=[{"color": color,
+                                                            "blocks": blocks}])
+        except slack.errors.SlackApiError as e:
+            print(e)
+            print(notify_ids)
+        finally:
+            time.sleep(1)  # need to sleep to avoid rate limiting.
+
         print("Alerting the slack channel.")
         slack_client.chat_postMessage(channel="#alarms",
                                       text=self.full_title,
                                       attachments=[{"color": color,
                                                     "blocks": blocks}])
+        time.sleep(1)  # need to sleep to avoid rate limiting.
 
     def get_issue(self):
         # main
@@ -357,6 +334,9 @@ class TCPAlertHandler(socketserver.BaseRequestHandler):
                 self.comment_on_issue()
                 return
         else:
+            if 'ok' in self.data['level'].lower():
+                print("Alert is marked as OK, not creating new issue.")
+                return
             print("Couldn't find existing issue, creating a new one...")
             data_details = self.data.get('details', None)
             msg = "### {data_id} \n### {data_message}".format(data_id=self.data['id'],

@@ -47,11 +47,12 @@ var timing = data
         .details('total time is greater than 1 hour')
         .message('{{ if eq .Level "OK" }}' + message_timing_ok + '{{ else }}' + message_timing_expired + '{{ end }}')
         .tcp('alert-service:9999')
-        
+
+
 var dman = data
-    |deadman(0.0, interval, lambda: hour("time") >= 10 AND hour("time") <= 18)
+    |deadman(0.0, 3h, lambda: if(hour("time") >= 10 AND hour("time") <= 16))
         .id('{{ index .Tags "name" }} gigavision deadman')
         .message('{{ if eq .Level "OK" }}' + message_alive + '{{ else }}' + message_dead + '{{ end }}')
-        .details('No Data within error state window (10:00 to 18:00)')
+        .details('deadman window: 10:00 to 16:00')
         .stateChangesOnly()
         .tcp('alert-service:9999')
