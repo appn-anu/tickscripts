@@ -362,7 +362,8 @@ class TCPAlertHandler(socketserver.BaseRequestHandler):
             assignees = set()
             for chain in self.escalation_chains:
                 for person in chain.responsible_people:
-                    assignees.add(person.git_login)
+                    if person.git_login:
+                        assignees.add(person.git_login)
 
             if len(assignees) == 1:
                 kwargs['assignee'] = assignees.pop()
