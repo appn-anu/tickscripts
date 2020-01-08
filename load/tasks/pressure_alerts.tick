@@ -1,6 +1,6 @@
 dbrp "chambers"."autogen"
 
-var message_generic = '{{ if eq .Level "OK" }}[OK] {{ .ID }}{{ else if .Level "WARN" }}[WARN] {{ .ID }}{{ else }}[CRIT] {{ .ID }}{{ end }}'
+var message_generic = '{{ if eq .Level "OK" }}[OK] {{ .ID }}{{ else if eq .Level "WARN" }}[WARN] {{ .ID }}{{ else }}[CRIT] {{ .ID }}{{ end }}'
 
 var data = stream
   |from()

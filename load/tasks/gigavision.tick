@@ -50,7 +50,7 @@ var timing = data
 
 
 var dman = data
-    |deadman(0.0, 3h, lambda: if(hour("time") >= 10 AND hour("time") <= 16))
+    |deadman(0.0, 3h, lambda: hour("time") >= 10 AND hour("time") <= 16 )
         .id('{{ index .Tags "name" }} gigavision deadman')
         .message('{{ if eq .Level "OK" }}' + message_alive + '{{ else }}' + message_dead + '{{ end }}')
         .details('deadman window: 10:00 to 16:00')
