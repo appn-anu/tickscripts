@@ -6,7 +6,7 @@ var deets = 'host: {{ index .Tags "host" }}
 TaskName: {{ index .TaskName }}
 No Data'
 
-var data = stream
+stream
     |from()
         .database('chambers')
         .retentionPolicy('autogen')
@@ -18,3 +18,4 @@ var data = stream
         .details(deets)
         .tcp('alert-service:9999')
         .stateChangesOnly()
+

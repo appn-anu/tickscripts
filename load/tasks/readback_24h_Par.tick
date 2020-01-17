@@ -8,10 +8,10 @@ var deets = 'past: {{index .Fields "hist.Par" | printf "%.1f"}}
 
 var current = batch
   |query('select Par from chambers.autogen.conviron2 limit 6')
-  .period(1h)
-  .every(10m)
-  .align()
-  .groupBy('host')
+    .period(1h)
+    .every(10m)
+    .align()
+    .groupBy('host')
 
 var joined = batch
   |query('select Par from chambers.autogen.conviron2 limit 6')

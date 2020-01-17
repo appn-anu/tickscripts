@@ -1,0 +1,21 @@
+dbrp "chambers"."autogen"
+
+var interval = 30m
+var message_deadok = '{{ if eq .Level "OK" }}[OK] {{ .ID }}{{ else }}[OFF] {{ .ID }}{{ end }}'
+var deets = 'host: {{ index .Tags "camera_name" }}
+TaskName: {{ index .TaskName }}'
+
+batch
+    |query('select "num_files_created" from chambers.autogen.camera')
+        .period(15m)
+        .every(5m)
+        .groupBy('camera_name')
+    |min('num_files_created')
+        .as('min_num_files_created')
+    |alert()
+        .crit(lambda: "min_num_files_created" < 1)
+        .id('{{ index .Tags "camera_name" }} spc camera num_files_created')
+        .message(message_deadok)
+        .details(deets)
+        .tcp('alert-service:9999')
+        .stateChangesOnly()

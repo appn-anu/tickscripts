@@ -319,8 +319,8 @@ class TCPAlertHandler(socketserver.BaseRequestHandler):
     def get_issue(self):
         # main
         for issue in repo.get_issues():
-            # the space in the regex required to not catch the cameras
-            chamberMatch = re.match(r'.*(GC\d\d) ', self.data['id'])
+            # match cameras as well.
+            chamberMatch = re.match(r'.*(GC\d\d)', self.data['id'])
             if chamberMatch is not None:
                 chamber = chamberMatch.group(1)
                 if chamber in issue.title:
