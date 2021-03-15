@@ -14,7 +14,7 @@ var pressure_diff_alert = data
     .as('PressureDiff')
   |alert()
     .id('{{ index .Tags "host" }} spc chamber pressure diff')
-    .warn(lambda: "PressureDiff" < 50.0)
+    .warn(lambda: "PressureDiff" < 45.0)
     .crit(lambda: "PressureDiff" < 20.0)
     .message(message_generic)
     .details('pressure diff: {{ index .Fields "PressureDiff" }}')

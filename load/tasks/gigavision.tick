@@ -1,4 +1,4 @@
-dbrp "capture_server"."autogen"
+dbrp "gigavision"."autogen"
 
 var interval = 1h
 
@@ -17,7 +17,7 @@ var message_timing_ok = '[OK] {{ .ID }}'
 
 var data = stream
     |from()
-        .database('capture_server')
+        .database('gigavision')
         .retentionPolicy('autogen')
         .measurement('gigavision')
         .groupBy('name')
@@ -42,7 +42,7 @@ var timing = data
     |default()
         .field('timing_total_s', 0.0)
     |alert()
-        .crit(lambda: "timing_total_s" >= 3600.0)
+        .crit(lambda: "timing_total_s" >= 7200.0)
         .id('{{ index .Tags "name" }} gigavision total timing')
         .details('total time is greater than 1 hour')
         .message('{{ if eq .Level "OK" }}' + message_timing_ok + '{{ else }}' + message_timing_expired + '{{ end }}')
