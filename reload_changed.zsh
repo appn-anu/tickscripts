@@ -6,5 +6,5 @@ for file in $(find load -type f -mtime -1); do
     echo "kapacitor define "$taskname" -tick "$fullpath
     docker exec tickstack_kapacitor_1 kapacitor define $taskname -tick $fullpath
     echo "kapacitor reload "$taskname
-    docker exec kapacitor tickstack_kapacitor_1 reload $taskname
+    docker exec tickstack_kapacitor_1 kapacitor reload $taskname
 done
